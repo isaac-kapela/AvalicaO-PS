@@ -9,7 +9,7 @@ export default function AvaliadorList() {
       <div className="card-logo-wrap">
         <img src="/logo.png" alt="Logo" className="card-logo" />
       </div>
-      <h1 className="card-title">Selecione o avaliador</h1>
+      <h1 className="card-title">Lista de Avaliadores</h1>
       <p className="card-sub">Clique no seu nome para iniciar</p>
 
       <div className="list-grid">
