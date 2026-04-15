@@ -1,14 +1,12 @@
-import dbConnect from '../../lib/mongodb';
-import Avaliacao from '../../lib/models/Avaliacao';
 import * as XLSX from 'xlsx';
+import { listarAvaliacoes } from '../../lib/avaliacoes';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Método não permitido.' });
   }
-  await dbConnect();
   try {
-    const docs = await Avaliacao.find({}).sort({ data: -1 }).lean();
+    const docs = await listarAvaliacoes();
 
     const linhas = [];
     for (const doc of docs) {
