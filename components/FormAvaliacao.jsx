@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { GRUPOS, CRITERIOS } from '../lib/data';
 
-const NOTAS = [0,1,2,3,4,5,6,7,8,9,10];
+const NOTAS = [0,1,2,3,4];
 
 function initNotas(membros) {
   const obj = {};
@@ -37,6 +37,8 @@ export default function FormAvaliacao({ avaliador, grupo }) {
       CRITERIOS.forEach(({ id, label }) => {
         if (notas[nome]?.[id] === '') {
           e[nome + '-' + id] = 'Selecione ' + label;
+        } else if (Number(notas[nome]?.[id]) > 4) {
+          e[nome + '-' + id] = 'Máximo 4';
         }
       });
     });
