@@ -2,10 +2,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { GRUPOS, CRITERIOS } from '../lib/data';
 
+const NOTAS = [0,1,2,3,4,5,6,7,8,9,10];
+
 function initNotas(membros) {
   const obj = {};
   membros.forEach((nome) => {
-    obj[nome] = { comunicacao: '', trabalhoEquipe: '', organizacao: '' };
+    const campos = {};
+    CRITERIOS.forEach(({ id }) => { campos[id] = ''; });
+    obj[nome] = campos;
   });
   return obj;
 }
@@ -31,11 +35,8 @@ export default function FormAvaliacao({ avaliador, grupo }) {
     const e = {};
     membros.forEach((nome) => {
       CRITERIOS.forEach(({ id, label }) => {
-        const v = notas[nome]?.[id];
-        if (v === '' || v === undefined) {
-          e[nome + '-' + id] = 'Informe ' + label;
-        } else if (Number(v) < 0 || Number(v) > 10) {
-          e[nome + '-' + id] = 'Entre 0 e 10';
+        if (notas[nome]?.[id] === '') {
+          e[nome + '-' + id] = 'Selecione ' + label;
         }
       });
     });
@@ -45,20 +46,16 @@ export default function FormAvaliacao({ avaliador, grupo }) {
   async function handleSubmit(e) {
     e.preventDefault();
     const errosVal = validar();
-    if (Object.keys(errosVal).length > 0) {
-      setErros(errosVal);
-      return;
-    }
+    if (Object.keys(errosVal).length > 0) { setErros(errosVal); return; }
     setErros({});
     setEnviando(true);
     setMensagem(null);
 
-    const avaliacoes = membros.map((nome) => ({
-      nome,
-      comunicacao: Number(notas[nome].comunicacao),
-      trabalhoEquipe: Number(notas[nome].trabalhoEquipe),
-      organizacao: Number(notas[nome].organizacao),
-    }));
+    const avaliacoes = membros.map((nome) => {
+      const entry = { nome };
+      CRITERIOS.forEach(({ id }) => { entry[id] = Number(notas[nome][id]); });
+      return entry;
+    });
 
     try {
       const res = await fetch('/api/avaliacoes', {
@@ -106,16 +103,16 @@ export default function FormAvaliacao({ avaliador, grupo }) {
               {CRITERIOS.map(({ id, label }) => (
                 <div key={id} className="field">
                   <label>{label}</label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="10"
-                    step="0.1"
-                    placeholder="0–10"
+                  <select
                     className={erros[nome + '-' + id] ? 'err' : ''}
                     value={notas[nome]?.[id] ?? ''}
                     onChange={(e) => setNota(nome, id, e.target.value)}
-                  />
+                  >
+                    <option value="">--</option>
+                    {NOTAS.map((n) => (
+                      <option key={n} value={n}>{n}</option>
+                    ))}
+                  </select>
                   {erros[nome + '-' + id] && (
                     <span className="err-msg">{erros[nome + '-' + id]}</span>
                   )}
@@ -141,3 +138,4 @@ export default function FormAvaliacao({ avaliador, grupo }) {
     </div>
   );
 }
+

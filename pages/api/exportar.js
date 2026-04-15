@@ -15,8 +15,15 @@ export default async function handler(req, res) {
           Avaliador: doc.avaliador,
           Grupo: doc.grupo,
           Pessoa: p.nome,
-          'Comunicação': p.comunicacao,
+          'Proatividade': p.proatividade,
+          'Liderança': p.lideranca,
+          'Escuta Ativa': p.escutaAtiva,
+          'Iniciativa': p.iniciativa,
           'Trabalho em Equipe': p.trabalhoEquipe,
+          'Comunicação': p.comunicacao,
+          'Resolução de Problemas': p.resolucaoProblemas,
+          'Adaptabilidade': p.adaptabilidade,
+          'Engajamento / Participação': p.engajamento,
           'Organização': p.organizacao,
         });
       }
@@ -26,7 +33,9 @@ export default async function handler(req, res) {
     const ws = XLSX.utils.json_to_sheet(linhas);
     ws['!cols'] = [
       { wch: 20 }, { wch: 8 }, { wch: 38 },
-      { wch: 14 }, { wch: 18 }, { wch: 12 },
+      { wch: 14 }, { wch: 12 }, { wch: 14 }, { wch: 12 },
+      { wch: 18 }, { wch: 14 }, { wch: 22 },
+      { wch: 16 }, { wch: 26 }, { wch: 13 },
     ];
     XLSX.utils.book_append_sheet(wb, ws, 'Avaliações');
 
