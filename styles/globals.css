@@ -1,0 +1,360 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --red:    #a80303;
+  --red-dk: #7a0202;
+  --black:  #111111;
+  --white:  #ffffff;
+  --gray-1: #f4f4f4;
+  --gray-2: #e8e8e8;
+  --gray-3: #aaaaaa;
+  --gray-4: #555555;
+  --shadow: 0 4px 24px rgba(0,0,0,0.10);
+  --radius: 10px;
+  --font:   'Segoe UI', Arial, sans-serif;
+}
+
+html, body {
+  font-family: var(--font);
+  background: var(--gray-1);
+  color: var(--black);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Layout ─────────────────────────────────────────── */
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  background: var(--black);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.header-logo {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+}
+
+.header-title {
+  color: var(--white);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.header-subtitle {
+  color: var(--gray-3);
+  font-size: 13px;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.content {
+  flex: 1;
+  padding: 32px 16px 48px;
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* ── Card ────────────────────────────────────────────── */
+.card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 32px;
+  box-shadow: var(--shadow);
+}
+
+.card-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--black);
+  margin-bottom: 4px;
+}
+
+.card-sub {
+  color: var(--gray-4);
+  font-size: 14px;
+  margin-bottom: 28px;
+}
+
+.card-sub strong {
+  color: var(--black);
+}
+
+/* ── Divider ─────────────────────────────────────────── */
+.divider {
+  height: 1px;
+  background: var(--gray-2);
+  margin: 24px 0;
+}
+
+/* ── Buttons ─────────────────────────────────────────── */
+.btn-back {
+  background: none;
+  border: none;
+  color: var(--red);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  letter-spacing: 0.2px;
+}
+
+.btn-back:hover { color: var(--red-dk); }
+
+.btn-primary {
+  width: 100%;
+  padding: 13px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  background: var(--red);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.18s, transform 0.1s;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.btn-primary:hover  { background: var(--red-dk); transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+
+.btn-submit {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  background: var(--red);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.18s;
+  letter-spacing: 0.3px;
+}
+
+.btn-submit:hover    { background: var(--red-dk); }
+.btn-submit:disabled { background: var(--gray-3); cursor: not-allowed; }
+
+.btn-dark {
+  display: inline-block;
+  padding: 11px 28px;
+  background: var(--black);
+  color: var(--white);
+  border-radius: var(--radius);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.4px;
+  transition: opacity 0.18s;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-dark:hover { opacity: 0.8; }
+
+.btn-sm {
+  padding: 8px 18px;
+  background: var(--red);
+  color: var(--white);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  transition: background 0.18s;
+  white-space: nowrap;
+}
+
+.btn-sm:hover { background: var(--red-dk); }
+
+/* ── Evaluator list ──────────────────────────────────── */
+.list-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+@media (max-width: 420px) {
+  .list-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Group card ──────────────────────────────────────── */
+.group-card {
+  border: 1.5px solid var(--gray-2);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-bottom: 14px;
+  background: var(--white);
+  transition: box-shadow 0.18s;
+}
+
+.group-card:hover { box-shadow: 0 4px 16px rgba(168,3,3,0.10); }
+
+.group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.group-label {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--black);
+}
+
+.group-number {
+  display: inline-block;
+  background: var(--red);
+  color: var(--white);
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 2px 8px;
+  margin-right: 8px;
+  letter-spacing: 0.5px;
+}
+
+.members-list {
+  list-style: none;
+  padding: 0;
+}
+
+.members-list li {
+  font-size: 13px;
+  color: var(--gray-4);
+  padding: 3px 0;
+  border-bottom: 1px solid var(--gray-2);
+}
+
+.members-list li:last-child { border-bottom: none; }
+
+/* ── Evaluation form ─────────────────────────────────── */
+.pessoa-card {
+  background: var(--gray-1);
+  border: 1.5px solid var(--gray-2);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 18px;
+}
+
+.pessoa-nome {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--black);
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--red);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pessoa-index {
+  background: var(--red);
+  color: var(--white);
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.criterios-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 480px) {
+  .criterios-grid { grid-template-columns: 1fr; }
+  .card { padding: 20px; }
+  .content { padding: 16px 12px 40px; }
+}
+
+/* ── Form fields ─────────────────────────────────────── */
+.field { display: flex; flex-direction: column; }
+
+.field label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gray-4);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.field input, .field textarea, .field select {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 15px;
+  font-family: var(--font);
+  border: 1.5px solid var(--gray-2);
+  border-radius: 6px;
+  background: var(--white);
+  color: var(--black);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus { border-color: var(--red); }
+
+.field input.err,
+.field textarea.err,
+.field select.err { border-color: var(--red); background: #fff5f5; }
+
+.field .err-msg {
+  font-size: 11px;
+  color: var(--red);
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.field textarea { resize: vertical; min-height: 84px; }
+
+/* ── Alerts ──────────────────────────────────────────── */
+.alert {
+  padding: 13px 16px;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.alert-ok  { background: #e6f4ea; color: #1b5e20; border-left: 4px solid #2e7d32; }
+.alert-err { background: #fdecea; color: #7f0000; border-left: 4px solid var(--red); }
+
+/* ── Export bar ──────────────────────────────────────── */
+.export-bar {
+  border-top: 1px solid var(--gray-2);
+  padding-top: 24px;
+  margin-top: 4px;
+  text-align: center;
+}
