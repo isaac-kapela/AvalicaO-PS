@@ -14,12 +14,19 @@ function initNotas(membros) {
   return obj;
 }
 
+function initObservacoes(membros) {
+  const obj = {};
+  membros.forEach((nome) => { obj[nome] = ''; });
+  return obj;
+}
+
 export default function FormAvaliacao({ avaliador, grupo }) {
   const router = useRouter();
   const membros = GRUPOS[grupo] || [];
 
   const [notas, setNotas] = useState(() => initNotas(membros));
-  const [observacao, setObservacao] = useState('');
+  const [observacoes, setObservacoes] = useState(() => initObservacoes(membros));
+  const [obsGeral, setObsGeral] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [mensagem, setMensagem] = useState(null);
   const [erros, setErros] = useState({});
@@ -29,6 +36,10 @@ export default function FormAvaliacao({ avaliador, grupo }) {
       ...prev,
       [nome]: { ...prev[nome], [campo]: valor },
     }));
+  }
+
+  function setObs(nome, valor) {
+    setObservacoes((prev) => ({ ...prev, [nome]: valor }));
   }
 
   function validar() {
@@ -56,6 +67,7 @@ export default function FormAvaliacao({ avaliador, grupo }) {
     const avaliacoes = membros.map((nome) => {
       const entry = { nome };
       CRITERIOS.forEach(({ id }) => { entry[id] = Number(notas[nome][id]); });
+      entry.observacao = observacoes[nome] || '';
       return entry;
     });
 
@@ -63,13 +75,14 @@ export default function FormAvaliacao({ avaliador, grupo }) {
       const res = await fetch('/api/avaliacoes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ avaliador, grupo: Number(grupo), avaliacoes, observacao }),
+        body: JSON.stringify({ avaliador, grupo: Number(grupo), avaliacoes, observacao: obsGeral }),
       });
       const data = await res.json();
       if (res.ok) {
         setMensagem({ tipo: 'sucesso', texto: 'Avaliação enviada com sucesso!' });
         setNotas(initNotas(membros));
-        setObservacao('');
+        setObservacoes(initObservacoes(membros));
+        setObsGeral('');
       } else {
         setMensagem({ tipo: 'erro', texto: data.error || 'Erro ao enviar.' });
       }
@@ -121,14 +134,23 @@ export default function FormAvaliacao({ avaliador, grupo }) {
                 </div>
               ))}
             </div>
+            <div className="field" style={{ marginTop: 12 }}>
+              <label>Observação sobre {nome.split(' ')[0]}</label>
+              <textarea
+                value={observacoes[nome] || ''}
+                onChange={(e) => setObs(nome, e.target.value)}
+                placeholder="Comentários sobre este avaliado (opcional)"
+                rows={2}
+              />
+            </div>
           </div>
         ))}
 
         <div className="field" style={{ marginBottom: 20 }}>
           <label>Observação geral</label>
           <textarea
-            value={observacao}
-            onChange={(e) => setObservacao(e.target.value)}
+            value={obsGeral}
+            onChange={(e) => setObsGeral(e.target.value)}
             placeholder="Comentários sobre o grupo (opcional)"
           />
         </div>
