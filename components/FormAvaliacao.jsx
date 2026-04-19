@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { GRUPOS, CRITERIOS } from '../lib/data';
 
@@ -20,16 +20,63 @@ function initObservacoes(membros) {
   return obj;
 }
 
+function storageKey(avaliador, grupo) {
+  return `rascunho_${avaliador}_grupo${grupo}`;
+}
+
 export default function FormAvaliacao({ avaliador, grupo }) {
   const router = useRouter();
   const membros = GRUPOS[grupo] || [];
+  const key = storageKey(avaliador, grupo);
 
-  const [notas, setNotas] = useState(() => initNotas(membros));
-  const [observacoes, setObservacoes] = useState(() => initObservacoes(membros));
-  const [obsGeral, setObsGeral] = useState('');
+  const [notas, setNotas] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem(key);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.notas) return parsed.notas;
+        }
+      } catch {}
+    }
+    return initNotas(membros);
+  });
+
+  const [observacoes, setObservacoes] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem(key);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.observacoes) return parsed.observacoes;
+        }
+      } catch {}
+    }
+    return initObservacoes(membros);
+  });
+
+  const [obsGeral, setObsGeral] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem(key);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.obsGeral) return parsed.obsGeral;
+        }
+      } catch {}
+    }
+    return '';
+  });
+
   const [enviando, setEnviando] = useState(false);
   const [mensagem, setMensagem] = useState(null);
   const [erros, setErros] = useState({});
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(key, JSON.stringify({ notas, observacoes, obsGeral }));
+    } catch {}
+  }, [notas, observacoes, obsGeral, key]);
 
   function setNota(nome, campo, valor) {
     setNotas((prev) => ({
@@ -83,6 +130,7 @@ export default function FormAvaliacao({ avaliador, grupo }) {
         setNotas(initNotas(membros));
         setObservacoes(initObservacoes(membros));
         setObsGeral('');
+        try { localStorage.removeItem(key); } catch {}
       } else {
         setMensagem({ tipo: 'erro', texto: data.error || 'Erro ao enviar.' });
       }
