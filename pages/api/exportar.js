@@ -25,6 +25,8 @@ export default async function handler(req, res) {
           'Adaptabilidade': p.adaptabilidade,
           'Engajamento / Participação': p.engajamento,
           'Organização': p.organizacao,
+          'Observação': p.observacao || '',
+          'Observação Geral': doc.observacao || '',
         });
       }
     }
@@ -36,6 +38,7 @@ export default async function handler(req, res) {
       { wch: 14 }, { wch: 12 }, { wch: 14 }, { wch: 12 },
       { wch: 18 }, { wch: 14 }, { wch: 22 },
       { wch: 16 }, { wch: 26 }, { wch: 13 },
+      { wch: 40 }, { wch: 40 },
     ];
     XLSX.utils.book_append_sheet(wb, ws, 'Avaliações');
 
