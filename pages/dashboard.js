@@ -97,14 +97,17 @@ export default function Dashboard() {
           <div className="stat-card">
             <span className="stat-num">{totalAvaliacoes}</span>
             <span className="stat-label">Avaliações enviadas</span>
+            <span className="stat-desc">Quantidade de grupos avaliados enviados ao banco (1 por avaliador por grupo)</span>
           </div>
           <div className="stat-card">
             <span className="stat-num">{ranking.length}</span>
             <span className="stat-label">Membros avaliados</span>
+            <span className="stat-desc">Membros que já receberam pelo menos uma nota de algum avaliador</span>
           </div>
           <div className="stat-card">
             <span className="stat-num">{totalMembros}</span>
             <span className="stat-label">Total de membros</span>
+            <span className="stat-desc">Total fixo de participantes cadastrados nos 5 grupos</span>
           </div>
         </div>
 
@@ -134,7 +137,16 @@ export default function Dashboard() {
         {aba === 'ranking' && (
           <div className="chart-section">
             <h2 className="section-title">Ranking Geral dos Membros</h2>
-            <p className="section-sub">Ordenado pela média geral (escala 0–4) entre todos os avaliadores.</p>
+            <p className="section-sub">
+              Ordenado pela <strong>média geral</strong> de cada membro (escala 0–4).
+              A média geral é calculada somando as médias dos 10 critérios e dividindo por 10.
+              Cada critério é a média de todas as notas recebidas de todos os avaliadores.
+            </p>
+            <div className="legenda-badges">
+              <span className="legenda-item"><span className="rank-badge" style={{ background: '#2e7d32', fontSize: 12, padding: '2px 10px' }}>≥ 3.5</span> Excelente</span>
+              <span className="legenda-item"><span className="rank-badge" style={{ background: '#f57c00', fontSize: 12, padding: '2px 10px' }}>≥ 2.5</span> Regular</span>
+              <span className="legenda-item"><span className="rank-badge" style={{ background: '#a80303', fontSize: 12, padding: '2px 10px' }}>&lt; 2.5</span> Abaixo</span>
+            </div>
             <div className="ranking-list">
               {ranking.map((item, i) => (
                 <div key={item.nome} className="ranking-row">
@@ -162,6 +174,11 @@ export default function Dashboard() {
         {aba === 'grupo' && (
           <div className="chart-section">
             <h2 className="section-title">Média por Critério — Grupo</h2>
+            <p className="section-sub">
+              Cada barra mostra a <strong>média do critério no grupo</strong>: média das médias individuais
+              de todos os membros do grupo naquele critério. A <strong>média geral do grupo</strong> é a
+              média das médias gerais de cada membro.
+            </p>
             <div className="grupo-selector">
               {[1, 2, 3, 4, 5].map((g) => (
                 <button
@@ -227,6 +244,11 @@ export default function Dashboard() {
         {aba === 'membro' && (
           <div className="chart-section">
             <h2 className="section-title">Perfil por Membro</h2>
+            <p className="section-sub">
+              O radar mostra a <strong>média de cada critério</strong> recebida pelo membro
+              (soma das notas de todos os avaliadores ÷ quantidade de avaliadores).
+              A <strong>média geral</strong> é a soma das 10 médias de critérios ÷ 10.
+            </p>
 
             <div className="field member-select-wrap">
               <label htmlFor="membro-sel">Selecione o membro</label>
