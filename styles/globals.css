@@ -369,4 +369,241 @@ html, body {
   padding-top: 24px;
   margin-top: 4px;
   text-align: center;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
+
+/* ── Dashboard ───────────────────────────────────────── */
+.dashboard-content {
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 16px 48px;
+}
+
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 600px) {
+  .stat-cards { grid-template-columns: 1fr 1fr; }
+}
+
+.stat-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 18px 16px;
+  box-shadow: var(--shadow);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-num {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--red);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--gray-4);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.tab-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  padding: 10px 22px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--gray-2);
+  color: var(--gray-4);
+  transition: background 0.15s, color 0.15s;
+}
+
+.tab-btn:hover { background: var(--gray-3); color: var(--black); }
+
+.tab-active {
+  background: var(--black) !important;
+  color: var(--white) !important;
+}
+
+.chart-section {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  box-shadow: var(--shadow);
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.section-sub {
+  font-size: 13px;
+  color: var(--gray-4);
+  margin-bottom: 20px;
+}
+
+/* Ranking */
+.ranking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.ranking-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--gray-1);
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.rank-pos {
+  font-weight: 700;
+  min-width: 32px;
+  text-align: center;
+  font-size: 15px;
+}
+
+.rank-nome {
+  flex: 1;
+  font-weight: 600;
+  color: var(--black);
+}
+
+.rank-grupo {
+  font-size: 12px;
+  color: var(--gray-4);
+  white-space: nowrap;
+}
+
+.rank-badge {
+  color: var(--white);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 3px 12px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* Grupo selector */
+.grupo-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.grupo-btn {
+  padding: 8px 16px;
+  border: 2px solid var(--gray-2);
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--white);
+  color: var(--gray-4);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.grupo-btn:hover { border-color: var(--red); color: var(--red); }
+
+.grupo-btn-active {
+  border-color: var(--red) !important;
+  color: var(--white) !important;
+  background: var(--red) !important;
+}
+
+.membros-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.membro-tag {
+  font-size: 12px;
+  padding: 3px 10px;
+  background: var(--gray-2);
+  border-radius: 20px;
+  color: var(--gray-4);
+  font-weight: 600;
+}
+
+.media-geral-label {
+  text-align: center;
+  font-size: 14px;
+  color: var(--gray-4);
+  margin-top: 16px;
+}
+
+/* Membro select */
+.member-select-wrap {
+  margin-bottom: 20px;
+}
+
+.member-select {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 15px;
+  font-family: var(--font);
+  border: 1.5px solid var(--gray-2);
+  border-radius: 6px;
+  background: var(--white);
+  color: var(--black);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.member-select:focus { border-color: var(--red); }
+
+/* Critérios table */
+.criterios-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+.criterios-table th {
+  text-align: left;
+  padding: 8px 12px;
+  background: var(--gray-1);
+  font-weight: 700;
+  color: var(--gray-4);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.4px;
+}
+
+.criterios-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--gray-2);
+}
+
+.criterios-table tr:last-child td { border-bottom: none; }

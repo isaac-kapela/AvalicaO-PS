@@ -26,6 +26,7 @@ export default function AvaliadorList() {
 
       <div className="export-bar">
         <a href="/api/exportar" className="btn-dark">Exportar Excel</a>
+        <a href="/dashboard" className="btn-dark">Dashboard</a>
       </div>
     </div>
   );
