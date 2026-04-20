@@ -97,7 +97,7 @@ export default function Dashboard() {
           <div className="stat-card">
             <span className="stat-num">{totalAvaliacoes}</span>
             <span className="stat-label">Avaliações enviadas</span>
-            <span className="stat-desc">Quantidade de grupos avaliados enviados ao banco (1 por avaliador por grupo)</span>
+            <span className="stat-desc">Quantidade de grupos avaliados enviados ao banco</span>
           </div>
           <div className="stat-card">
             <span className="stat-num">{ranking.length}</span>
