@@ -1,15 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
-import { GRUPOS, CRITERIOS } from '../lib/data';
+import { CRITERIOS } from '../lib/data';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
 } from 'recharts';
-
-const TODOS_MEMBROS = Object.entries(GRUPOS).flatMap(([g, membros]) =>
-  membros.map((nome) => ({ nome, grupo: Number(g) }))
-);
 
 const BAR_COLOR = '#a80303';
 const RADAR_COLOR = '#a80303';
@@ -34,13 +30,21 @@ export default function Dashboard() {
   const [dados, setDados] = useState(null);
   const [erro, setErro] = useState(null);
   const [carregando, setCarregando] = useState(true);
-  const [grupoSel, setGrupoSel] = useState(1);
-  const [membroSel, setMembroSel] = useState(TODOS_MEMBROS[0].nome);
+  const [grupoSel, setGrupoSel] = useState(null);
+  const [membroSel, setMembroSel] = useState(null);
 
   useEffect(() => {
     fetch('/api/metricas')
       .then((r) => r.json())
-      .then((json) => { setDados(json); setCarregando(false); })
+      .then((json) => {
+        setDados(json);
+        // Inicializa seleções após carregar
+        const nums = Object.keys(json.grupos || {}).sort((a, b) => Number(a) - Number(b));
+        if (nums.length > 0) setGrupoSel(nums[0]);
+        const todosM = Object.entries(json.grupos || {}).flatMap(([, membros]) => membros);
+        if (todosM.length > 0) setMembroSel(todosM[0]);
+        setCarregando(false);
+      })
       .catch((e) => { setErro(e.message); setCarregando(false); });
   }, []);
 
@@ -65,18 +69,21 @@ export default function Dashboard() {
     );
   }
 
-  const { porMembro, porGrupo, ranking, totalAvaliacoes, avaliadores } = dados;
-  const totalMembros = TODOS_MEMBROS.length;
+  const { porMembro, porGrupo, ranking, grupos, totalAvaliacoes } = dados;
+  const GRUPOS = grupos || {};
+  const numeros = Object.keys(GRUPOS).sort((a, b) => Number(a) - Number(b));
+  const todosMembros = Object.entries(GRUPOS).flatMap(([g, membros]) =>
+    membros.map((nome) => ({ nome, grupo: Number(g) }))
+  );
+  const totalMembros = todosMembros.length;
 
-  // Dados do BarChart do grupo selecionado
-  const dadosGrupo = porGrupo[grupoSel];
+  const dadosGrupo = grupoSel ? porGrupo[grupoSel] : null;
   const barData = CRITERIOS.map((c) => ({
     name: c.label,
     media: dadosGrupo?.[c.id] ?? 0,
   }));
 
-  // Dados do RadarChart do membro selecionado
-  const dadosMembro = porMembro[membroSel] || {};
+  const dadosMembro = membroSel ? (porMembro[membroSel] || {}) : {};
   const radarData = CRITERIOS.map((c) => ({
     subject: c.label,
     A: dadosMembro[c.id] ?? 0,
@@ -86,13 +93,11 @@ export default function Dashboard() {
   return (
     <Layout title="Dashboard de Avaliações">
       <div className="dashboard-content">
-        {/* Cabeçalho */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
           <button className="btn-back" onClick={() => router.push('/')}>← Voltar</button>
           <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>Dashboard</h1>
         </div>
 
-        {/* Stat cards */}
         <div className="stat-cards">
           <div className="stat-card">
             <span className="stat-num">{totalAvaliacoes}</span>
@@ -107,40 +112,28 @@ export default function Dashboard() {
           <div className="stat-card">
             <span className="stat-num">{totalMembros}</span>
             <span className="stat-label">Total de membros</span>
-            <span className="stat-desc">Total fixo de participantes cadastrados nos 5 grupos</span>
+            <span className="stat-desc">Total de participantes cadastrados na edição ativa</span>
           </div>
         </div>
 
-        {/* Abas */}
         <div className="tab-bar">
-          <button
-            className={`tab-btn ${aba === 'ranking' ? 'tab-active' : ''}`}
-            onClick={() => setAba('ranking')}
-          >
+          <button className={`tab-btn ${aba === 'ranking' ? 'tab-active' : ''}`} onClick={() => setAba('ranking')}>
             Ranking Geral
           </button>
-          <button
-            className={`tab-btn ${aba === 'grupo' ? 'tab-active' : ''}`}
-            onClick={() => setAba('grupo')}
-          >
+          <button className={`tab-btn ${aba === 'grupo' ? 'tab-active' : ''}`} onClick={() => setAba('grupo')}>
             Por Grupo
           </button>
-          <button
-            className={`tab-btn ${aba === 'membro' ? 'tab-active' : ''}`}
-            onClick={() => setAba('membro')}
-          >
+          <button className={`tab-btn ${aba === 'membro' ? 'tab-active' : ''}`} onClick={() => setAba('membro')}>
             Por Membro
           </button>
         </div>
 
-        {/* ── ABA: RANKING ──────────────────────────────────── */}
+        {/* ── RANKING ── */}
         {aba === 'ranking' && (
           <div className="chart-section">
             <h2 className="section-title">Ranking Geral dos Membros</h2>
             <p className="section-sub">
               Ordenado pela <strong>média geral</strong> de cada membro (escala 0–4).
-              A média geral é calculada somando as médias dos 10 critérios e dividindo por 10.
-              Cada critério é a média de todas as notas recebidas de todos os avaliadores.
             </p>
             <div className="legenda-badges">
               <span className="legenda-item"><span className="rank-badge" style={{ background: '#2e7d32', fontSize: 12, padding: '2px 10px' }}>≥ 3.5</span> Excelente</span>
@@ -153,10 +146,7 @@ export default function Dashboard() {
                   <span className="rank-pos">{medalha(i + 1)}</span>
                   <span className="rank-nome">{item.nome}</span>
                   <span className="rank-grupo">Grupo {item.grupo}</span>
-                  <span
-                    className="rank-badge"
-                    style={{ background: badgeColor(item.media) }}
-                  >
+                  <span className="rank-badge" style={{ background: badgeColor(item.media) }}>
                     {item.media?.toFixed(2)}
                   </span>
                 </div>
@@ -170,17 +160,15 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* ── ABA: GRUPO ────────────────────────────────────── */}
+        {/* ── GRUPO ── */}
         {aba === 'grupo' && (
           <div className="chart-section">
             <h2 className="section-title">Média por Critério — Grupo</h2>
             <p className="section-sub">
-              Cada barra mostra a <strong>média do critério no grupo</strong>: média das médias individuais
-              de todos os membros do grupo naquele critério. A <strong>média geral do grupo</strong> é a
-              média das médias gerais de cada membro.
+              Média dos critérios de todos os membros do grupo selecionado.
             </p>
             <div className="grupo-selector">
-              {[1, 2, 3, 4, 5].map((g) => (
+              {numeros.map((g) => (
                 <button
                   key={g}
                   className={`grupo-btn ${grupoSel === g ? 'grupo-btn-active' : ''}`}
@@ -191,35 +179,23 @@ export default function Dashboard() {
               ))}
             </div>
 
-            <div className="membros-tag-list">
-              {GRUPOS[grupoSel].map((m) => (
-                <span key={m} className="membro-tag">{m}</span>
-              ))}
-            </div>
+            {grupoSel && (
+              <div className="membros-tag-list">
+                {(GRUPOS[grupoSel] || []).map((m) => (
+                  <span key={m} className="membro-tag">{m}</span>
+                ))}
+              </div>
+            )}
 
             {dadosGrupo ? (
               <ResponsiveContainer width="100%" height={360}>
-                <BarChart
-                  data={barData}
-                  layout="vertical"
-                  margin={{ top: 8, right: 24, left: 8, bottom: 8 }}
-                >
+                <BarChart data={barData} layout="vertical" margin={{ top: 8, right: 24, left: 8, bottom: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                   <XAxis type="number" domain={[0, 4]} tickCount={5} tick={{ fontSize: 12 }} />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    width={160}
-                    tick={{ fontSize: 12 }}
-                  />
-                  <Tooltip
-                    formatter={(v) => [v.toFixed(2), 'Média']}
-                    contentStyle={{ fontSize: 13 }}
-                  />
+                  <YAxis type="category" dataKey="name" width={160} tick={{ fontSize: 12 }} />
+                  <Tooltip formatter={(v) => [v.toFixed(2), 'Média']} contentStyle={{ fontSize: 13 }} />
                   <Bar dataKey="media" radius={[0, 4, 4, 0]}>
-                    {barData.map((_, idx) => (
-                      <Cell key={idx} fill={BAR_COLOR} />
-                    ))}
+                    {barData.map((_, idx) => <Cell key={idx} fill={BAR_COLOR} />)}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
@@ -240,27 +216,25 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* ── ABA: MEMBRO ───────────────────────────────────── */}
+        {/* ── MEMBRO ── */}
         {aba === 'membro' && (
           <div className="chart-section">
             <h2 className="section-title">Perfil por Membro</h2>
             <p className="section-sub">
-              O radar mostra a <strong>média de cada critério</strong> recebida pelo membro
-              (soma das notas de todos os avaliadores ÷ quantidade de avaliadores).
-              A <strong>média geral</strong> é a soma das 10 médias de critérios ÷ 10.
+              Média de cada critério recebida pelo membro de todos os avaliadores.
             </p>
 
             <div className="field member-select-wrap">
               <label htmlFor="membro-sel">Selecione o membro</label>
               <select
                 id="membro-sel"
-                value={membroSel}
+                value={membroSel || ''}
                 onChange={(e) => setMembroSel(e.target.value)}
                 className="member-select"
               >
-                {Object.entries(GRUPOS).map(([g, membros]) => (
+                {numeros.map((g) => (
                   <optgroup key={g} label={`Grupo ${g}`}>
-                    {membros.map((m) => (
+                    {(GRUPOS[g] || []).map((m) => (
                       <option key={m} value={m}>{m}</option>
                     ))}
                   </optgroup>
@@ -271,10 +245,7 @@ export default function Dashboard() {
             {dadosMembro.media !== undefined && dadosMembro.media !== null ? (
               <>
                 <div style={{ textAlign: 'center', marginBottom: 8 }}>
-                  <span
-                    className="rank-badge"
-                    style={{ fontSize: 18, padding: '6px 20px', background: badgeColor(dadosMembro.media) }}
-                  >
+                  <span className="rank-badge" style={{ fontSize: 18, padding: '6px 20px', background: badgeColor(dadosMembro.media) }}>
                     Média: {dadosMembro.media?.toFixed(2)}
                   </span>
                 </div>
@@ -284,37 +255,21 @@ export default function Dashboard() {
                     <PolarGrid />
                     <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11 }} />
                     <PolarRadiusAxis angle={90} domain={[0, 4]} tickCount={5} tick={{ fontSize: 10 }} />
-                    <Radar
-                      name={membroSel}
-                      dataKey="A"
-                      stroke={RADAR_COLOR}
-                      fill={RADAR_COLOR}
-                      fillOpacity={0.35}
-                    />
+                    <Radar name={membroSel} dataKey="A" stroke={RADAR_COLOR} fill={RADAR_COLOR} fillOpacity={0.35} />
                     <Tooltip formatter={(v) => [v.toFixed(2), 'Média']} contentStyle={{ fontSize: 13 }} />
                   </RadarChart>
                 </ResponsiveContainer>
 
                 <table className="criterios-table">
                   <thead>
-                    <tr>
-                      <th>Critério</th>
-                      <th>Média</th>
-                    </tr>
+                    <tr><th>Critério</th><th>Média</th></tr>
                   </thead>
                   <tbody>
                     {CRITERIOS.map((c) => (
                       <tr key={c.id}>
                         <td>{c.label}</td>
                         <td>
-                          <span
-                            className="rank-badge"
-                            style={{
-                              background: badgeColor(dadosMembro[c.id]),
-                              fontSize: 12,
-                              padding: '2px 10px',
-                            }}
-                          >
+                          <span className="rank-badge" style={{ background: badgeColor(dadosMembro[c.id]), fontSize: 12, padding: '2px 10px' }}>
                             {dadosMembro[c.id]?.toFixed(2) ?? '—'}
                           </span>
                         </td>

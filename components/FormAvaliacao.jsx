@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { GRUPOS, CRITERIOS } from '../lib/data';
+import { CRITERIOS } from '../lib/data';
 
 const NOTAS = [0,1,2,3,4];
 
@@ -24,9 +24,8 @@ function storageKey(avaliador, grupo) {
   return `rascunho_${avaliador}_grupo${grupo}`;
 }
 
-export default function FormAvaliacao({ avaliador, grupo }) {
+export default function FormAvaliacao({ avaliador, grupo, membros }) {
   const router = useRouter();
-  const membros = GRUPOS[grupo] || [];
   const key = storageKey(avaliador, grupo);
 
   const [notas, setNotas] = useState(() => {
@@ -149,6 +148,10 @@ export default function FormAvaliacao({ avaliador, grupo }) {
       <h1 className="card-title">Grupo {grupo}</h1>
       <p className="card-sub">Avaliador: <strong>{avaliador}</strong></p>
 
+      {membros.length === 0 && (
+        <div className="alert alert-err">Nenhum membro encontrado para este grupo.</div>
+      )}
+
       {mensagem && (
         <div className={'alert ' + (mensagem.tipo === 'sucesso' ? 'alert-ok' : 'alert-err')}>
           {mensagem.texto}
@@ -194,20 +197,23 @@ export default function FormAvaliacao({ avaliador, grupo }) {
           </div>
         ))}
 
-        <div className="field" style={{ marginBottom: 20 }}>
-          <label>Observação geral</label>
-          <textarea
-            value={obsGeral}
-            onChange={(e) => setObsGeral(e.target.value)}
-            placeholder="Comentários sobre o grupo (opcional)"
-          />
-        </div>
+        {membros.length > 0 && (
+          <>
+            <div className="field" style={{ marginBottom: 20 }}>
+              <label>Observação geral</label>
+              <textarea
+                value={obsGeral}
+                onChange={(e) => setObsGeral(e.target.value)}
+                placeholder="Comentários sobre o grupo (opcional)"
+              />
+            </div>
 
-        <button type="submit" className="btn-submit" disabled={enviando}>
-          {enviando ? 'Enviando...' : 'Salvar Avaliação'}
-        </button>
+            <button type="submit" className="btn-submit" disabled={enviando}>
+              {enviando ? 'Enviando...' : 'Salvar Avaliação'}
+            </button>
+          </>
+        )}
       </form>
     </div>
   );
 }
-
