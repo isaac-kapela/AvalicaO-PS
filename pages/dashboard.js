@@ -7,14 +7,14 @@ import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
 } from 'recharts';
 
-const BAR_COLOR = '#a80303';
-const RADAR_COLOR = '#a80303';
+const BAR_COLOR = '#c9182b';
+const RADAR_COLOR = '#c9182b';
 
 function badgeColor(media) {
-  if (media === null) return '#aaaaaa';
-  if (media >= 3.5) return '#2e7d32';
-  if (media >= 2.5) return '#f57c00';
-  return '#a80303';
+  if (media === null || media === undefined) return '#94a3b8';
+  if (media >= 3.5) return '#16a34a'; // verde
+  if (media >= 2.5) return '#d97706'; // âmbar
+  return '#dc2626'; // vermelho
 }
 
 function medalha(pos) {
@@ -38,7 +38,6 @@ export default function Dashboard() {
       .then((r) => r.json())
       .then((json) => {
         setDados(json);
-        // Inicializa seleções após carregar
         const nums = Object.keys(json.grupos || {}).sort((a, b) => Number(a) - Number(b));
         if (nums.length > 0) setGrupoSel(nums[0]);
         const todosM = Object.entries(json.grupos || {}).flatMap(([, membros]) => membros);
@@ -51,8 +50,8 @@ export default function Dashboard() {
   if (carregando) {
     return (
       <Layout title="Dashboard">
-        <div className="card" style={{ textAlign: 'center', padding: '60px 32px' }}>
-          <p style={{ color: '#555' }}>Carregando métricas...</p>
+        <div className="card" style={{ textAlign: 'center', padding: '64px 32px' }}>
+          <p style={{ color: 'var(--text-muted)' }}>Carregando dados estatísticos...</p>
         </div>
       </Layout>
     );
@@ -91,68 +90,89 @@ export default function Dashboard() {
   }));
 
   return (
-    <Layout title="Dashboard de Avaliações">
+    <Layout title="Dashboard de Avaliações" subtitle="Métricas do Processo Seletivo">
       <div className="dashboard-content">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-          <button className="btn-back" onClick={() => router.push('/')}>← Voltar</button>
-          <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>Dashboard</h1>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <button className="btn-back" style={{ marginBottom: 0 }} onClick={() => router.push('/')}>
+              ← Início
+            </button>
+            <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0, letterSpacing: -0.4 }}>
+              Painel de Desempenho (PS)
+            </h1>
+          </div>
+          <a href="/api/exportar" className="btn-sm" style={{ padding: '8px 14px' }}>
+            📥 Baixar Planilha (.xlsx)
+          </a>
         </div>
 
+        {/* Stat cards */}
         <div className="stat-cards">
           <div className="stat-card">
             <span className="stat-num">{totalAvaliacoes}</span>
             <span className="stat-label">Avaliações enviadas</span>
-            <span className="stat-desc">Quantidade de grupos avaliados enviados ao banco</span>
+            <span className="stat-desc">Grupos com avaliações computadas</span>
           </div>
           <div className="stat-card">
             <span className="stat-num">{ranking.length}</span>
-            <span className="stat-label">Membros avaliados</span>
-            <span className="stat-desc">Membros que já receberam pelo menos uma nota de algum avaliador</span>
+            <span className="stat-label">Candidatos avaliados</span>
+            <span className="stat-desc">Participantes com notas registradas</span>
           </div>
           <div className="stat-card">
             <span className="stat-num">{totalMembros}</span>
-            <span className="stat-label">Total de membros</span>
-            <span className="stat-desc">Total de participantes cadastrados na edição ativa</span>
+            <span className="stat-label">Total de inscritos</span>
+            <span className="stat-desc">Candidatos alocados nos grupos</span>
           </div>
         </div>
 
+        {/* Tabs */}
         <div className="tab-bar">
           <button className={`tab-btn ${aba === 'ranking' ? 'tab-active' : ''}`} onClick={() => setAba('ranking')}>
-            Ranking Geral
+            🏆 Ranking Geral
           </button>
           <button className={`tab-btn ${aba === 'grupo' ? 'tab-active' : ''}`} onClick={() => setAba('grupo')}>
-            Por Grupo
+            📊 Médias por Grupo
           </button>
           <button className={`tab-btn ${aba === 'membro' ? 'tab-active' : ''}`} onClick={() => setAba('membro')}>
-            Por Membro
+            👤 Radar por Membro
           </button>
         </div>
 
         {/* ── RANKING ── */}
         {aba === 'ranking' && (
           <div className="chart-section">
-            <h2 className="section-title">Ranking Geral dos Membros</h2>
+            <h2 className="section-title">Ranking de Desempenho dos Candidatos</h2>
             <p className="section-sub">
-              Ordenado pela <strong>média geral</strong> de cada membro (escala 0–4).
+              Ordenado pela <strong>média ponderada</strong> em todos os critérios avaliados (escala de 0 a 4).
             </p>
-            <div className="legenda-badges">
-              <span className="legenda-item"><span className="rank-badge" style={{ background: '#2e7d32', fontSize: 12, padding: '2px 10px' }}>≥ 3.5</span> Excelente</span>
-              <span className="legenda-item"><span className="rank-badge" style={{ background: '#f57c00', fontSize: 12, padding: '2px 10px' }}>≥ 2.5</span> Regular</span>
-              <span className="legenda-item"><span className="rank-badge" style={{ background: '#a80303', fontSize: 12, padding: '2px 10px' }}>&lt; 2.5</span> Abaixo</span>
+
+            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 20 }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)' }}>
+                <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#16a34a' }} /> ≥ 3.5 Excelente
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)' }}>
+                <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#d97706' }} /> ≥ 2.5 Regular
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)' }}>
+                <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#dc2626' }} /> &lt; 2.5 Insuficiente
+              </span>
             </div>
+
             <div className="ranking-list">
               {ranking.map((item, i) => (
                 <div key={item.nome} className="ranking-row">
                   <span className="rank-pos">{medalha(i + 1)}</span>
-                  <span className="rank-nome">{item.nome}</span>
-                  <span className="rank-grupo">Grupo {item.grupo}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>{item.nome}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Grupo {item.grupo}</div>
+                  </div>
                   <span className="rank-badge" style={{ background: badgeColor(item.media) }}>
-                    {item.media?.toFixed(2)}
+                    Média: {item.media?.toFixed(2)}
                   </span>
                 </div>
               ))}
               {ranking.length === 0 && (
-                <p style={{ color: '#aaa', textAlign: 'center', padding: '32px 0' }}>
+                <p style={{ color: 'var(--text-light)', textAlign: 'center', padding: '40px 0' }}>
                   Nenhuma avaliação registrada ainda.
                 </p>
               )}
@@ -163,10 +183,11 @@ export default function Dashboard() {
         {/* ── GRUPO ── */}
         {aba === 'grupo' && (
           <div className="chart-section">
-            <h2 className="section-title">Média por Critério — Grupo</h2>
+            <h2 className="section-title">Média de Critérios por Grupo</h2>
             <p className="section-sub">
-              Média dos critérios de todos os membros do grupo selecionado.
+              Visualize os pontos fortes e de desenvolvimento de cada grupo de dinâmicas.
             </p>
+
             <div className="grupo-selector">
               {numeros.map((g) => (
                 <button
@@ -180,37 +201,33 @@ export default function Dashboard() {
             </div>
 
             {grupoSel && (
-              <div className="membros-tag-list">
+              <div className="members-chips" style={{ marginBottom: 24 }}>
                 {(GRUPOS[grupoSel] || []).map((m) => (
-                  <span key={m} className="membro-tag">{m}</span>
+                  <span key={m} className="member-chip">{m}</span>
                 ))}
               </div>
             )}
 
             {dadosGrupo ? (
-              <ResponsiveContainer width="100%" height={360}>
-                <BarChart data={barData} layout="vertical" margin={{ top: 8, right: 24, left: 8, bottom: 8 }}>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                  <XAxis type="number" domain={[0, 4]} tickCount={5} tick={{ fontSize: 12 }} />
-                  <YAxis type="category" dataKey="name" width={160} tick={{ fontSize: 12 }} />
-                  <Tooltip formatter={(v) => [v.toFixed(2), 'Média']} contentStyle={{ fontSize: 13 }} />
-                  <Bar dataKey="media" radius={[0, 4, 4, 0]}>
-                    {barData.map((_, idx) => <Cell key={idx} fill={BAR_COLOR} />)}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <div style={{ width: '100%', height: 380, marginTop: 12 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={barData} layout="vertical" margin={{ top: 8, right: 30, left: 16, bottom: 8 }}>
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
+                    <XAxis type="number" domain={[0, 4]} tickCount={5} tick={{ fill: '#64748b', fontSize: 12 }} />
+                    <YAxis type="category" dataKey="name" width={140} tick={{ fill: '#334155', fontSize: 12, fontWeight: 500 }} />
+                    <Tooltip
+                      formatter={(v) => [`${v.toFixed(2)} / 4.0`, 'Média']}
+                      contentStyle={{ borderRadius: 8, border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+                    />
+                    <Bar dataKey="media" radius={[0, 6, 6, 0]}>
+                      {barData.map((_, idx) => <Cell key={idx} fill={BAR_COLOR} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             ) : (
-              <p style={{ color: '#aaa', textAlign: 'center', padding: '32px 0' }}>
-                Nenhuma avaliação para este grupo ainda.
-              </p>
-            )}
-
-            {dadosGrupo && (
-              <p className="media-geral-label">
-                Média geral do grupo:{' '}
-                <strong style={{ color: badgeColor(dadosGrupo.media) }}>
-                  {dadosGrupo.media?.toFixed(2) ?? '—'}
-                </strong>
+              <p style={{ color: 'var(--text-light)', textAlign: 'center', padding: '40px 0' }}>
+                Sem dados para este grupo.
               </p>
             )}
           </div>
@@ -219,69 +236,40 @@ export default function Dashboard() {
         {/* ── MEMBRO ── */}
         {aba === 'membro' && (
           <div className="chart-section">
-            <h2 className="section-title">Perfil por Membro</h2>
+            <h2 className="section-title">Análise de Competências Individual</h2>
             <p className="section-sub">
-              Média de cada critério recebida pelo membro de todos os avaliadores.
+              Gráfico radar detalhando as 10 competências avaliadas para cada candidato.
             </p>
 
-            <div className="field member-select-wrap">
-              <label htmlFor="membro-sel">Selecione o membro</label>
+            <div style={{ maxWidth: 380, marginBottom: 24 }}>
               <select
-                id="membro-sel"
+                className="field select"
+                style={{ padding: '10px 14px', borderRadius: 8, border: '1.5px solid var(--border)', width: '100%' }}
                 value={membroSel || ''}
                 onChange={(e) => setMembroSel(e.target.value)}
-                className="member-select"
               >
-                {numeros.map((g) => (
-                  <optgroup key={g} label={`Grupo ${g}`}>
-                    {(GRUPOS[g] || []).map((m) => (
-                      <option key={m} value={m}>{m}</option>
-                    ))}
-                  </optgroup>
+                {todosMembros.map(({ nome, grupo }) => (
+                  <option key={nome} value={nome}>
+                    {nome} (G{grupo})
+                  </option>
                 ))}
               </select>
             </div>
 
-            {dadosMembro.media !== undefined && dadosMembro.media !== null ? (
-              <>
-                <div style={{ textAlign: 'center', marginBottom: 8 }}>
-                  <span className="rank-badge" style={{ fontSize: 18, padding: '6px 20px', background: badgeColor(dadosMembro.media) }}>
-                    Média: {dadosMembro.media?.toFixed(2)}
-                  </span>
+            {membroSel && (
+              <div>
+                <div style={{ width: '100%', height: 380 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart data={radarData}>
+                      <PolarGrid stroke="#e2e8f0" />
+                      <PolarAngleAxis dataKey="subject" tick={{ fill: '#475569', fontSize: 11, fontWeight: 600 }} />
+                      <PolarRadiusAxis domain={[0, 4]} tickCount={5} stroke="#94a3b8" />
+                      <Tooltip formatter={(v) => [`${v.toFixed(2)} / 4.0`, 'Nota']} />
+                      <Radar name="Nota" dataKey="A" stroke={RADAR_COLOR} fill={RADAR_COLOR} fillOpacity={0.25} />
+                    </RadarChart>
+                  </ResponsiveContainer>
                 </div>
-
-                <ResponsiveContainer width="100%" height={360}>
-                  <RadarChart data={radarData} margin={{ top: 16, right: 40, bottom: 16, left: 40 }}>
-                    <PolarGrid />
-                    <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11 }} />
-                    <PolarRadiusAxis angle={90} domain={[0, 4]} tickCount={5} tick={{ fontSize: 10 }} />
-                    <Radar name={membroSel} dataKey="A" stroke={RADAR_COLOR} fill={RADAR_COLOR} fillOpacity={0.35} />
-                    <Tooltip formatter={(v) => [v.toFixed(2), 'Média']} contentStyle={{ fontSize: 13 }} />
-                  </RadarChart>
-                </ResponsiveContainer>
-
-                <table className="criterios-table">
-                  <thead>
-                    <tr><th>Critério</th><th>Média</th></tr>
-                  </thead>
-                  <tbody>
-                    {CRITERIOS.map((c) => (
-                      <tr key={c.id}>
-                        <td>{c.label}</td>
-                        <td>
-                          <span className="rank-badge" style={{ background: badgeColor(dadosMembro[c.id]), fontSize: 12, padding: '2px 10px' }}>
-                            {dadosMembro[c.id]?.toFixed(2) ?? '—'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </>
-            ) : (
-              <p style={{ color: '#aaa', textAlign: 'center', padding: '32px 0' }}>
-                Nenhuma avaliação para este membro ainda.
-              </p>
+              </div>
             )}
           </div>
         )}

@@ -7,13 +7,13 @@ import {
   ResponsiveContainer, Tooltip,
 } from 'recharts';
 
-const RADAR_COLOR = '#a80303';
+const RADAR_COLOR = '#6366f1';
 
 function badgeColor(media) {
-  if (media === null || media === undefined) return '#aaaaaa';
-  if (media >= 3.5) return '#2e7d32';
-  if (media >= 2.5) return '#f57c00';
-  return '#a80303';
+  if (media === null || media === undefined) return '#94a3b8';
+  if (media >= 3.5) return '#16a34a';
+  if (media >= 2.5) return '#d97706';
+  return '#dc2626';
 }
 
 function medalha(pos) {
@@ -45,8 +45,8 @@ export default function DashboardTrainee() {
   if (carregando) {
     return (
       <Layout title="Dashboard Trainee">
-        <div className="card" style={{ textAlign: 'center', padding: '60px 32px' }}>
-          <p style={{ color: '#555' }}>Carregando métricas...</p>
+        <div className="card" style={{ textAlign: 'center', padding: '64px 32px' }}>
+          <p style={{ color: 'var(--text-muted)' }}>Carregando métricas de trainees...</p>
         </div>
       </Layout>
     );
@@ -73,12 +73,18 @@ export default function DashboardTrainee() {
   }));
 
   return (
-    <Layout title="Dashboard Trainee">
+    <Layout title="Dashboard Trainee" subtitle="Acompanhamento Individual">
       <div className="dashboard-content">
         {/* Cabeçalho */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-          <button className="btn-back" onClick={() => router.push('/')}>← Voltar</button>
-          <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>Dashboard — Processo Trainee</h1>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <button className="btn-back" style={{ marginBottom: 0 }} onClick={() => router.push('/')}>
+              ← Início
+            </button>
+            <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0, letterSpacing: -0.4 }}>
+              Painel de Desempenho (Trainees)
+            </h1>
+          </div>
         </div>
 
         {/* Stat cards */}
@@ -86,86 +92,55 @@ export default function DashboardTrainee() {
           <div className="stat-card">
             <span className="stat-num">{totalAvaliacoes}</span>
             <span className="stat-label">Avaliações enviadas</span>
-            <span className="stat-desc">Total de avaliações individuais registradas no banco</span>
+            <span className="stat-desc">Total de feedbacks individuais registrados</span>
           </div>
           <div className="stat-card">
             <span className="stat-num">{avaliados}</span>
-            <span className="stat-label">Candidatos avaliados</span>
-            <span className="stat-desc">Candidatos que já receberam pelo menos uma nota</span>
+            <span className="stat-label">Trainees avaliados</span>
+            <span className="stat-desc">Membros que já receberam nota</span>
           </div>
           <div className="stat-card">
             <span className="stat-num">{totalCandidatos}</span>
-            <span className="stat-label">Total de candidatos</span>
-            <span className="stat-desc">Candidatos cadastrados na edição trainee ativa</span>
+            <span className="stat-label">Total de trainees</span>
+            <span className="stat-desc">Cadastrados na edição atual</span>
           </div>
         </div>
 
-        {/* Abas */}
+        {/* Tabs */}
         <div className="tab-bar">
-          <button
-            className={`tab-btn ${aba === 'ranking' ? 'tab-active' : ''}`}
-            onClick={() => setAba('ranking')}
-          >
-            Ranking Geral
+          <button className={`tab-btn ${aba === 'ranking' ? 'tab-active' : ''}`} onClick={() => setAba('ranking')}>
+            🏆 Ranking Geral
           </button>
-          <button
-            className={`tab-btn ${aba === 'candidato' ? 'tab-active' : ''}`}
-            onClick={() => setAba('candidato')}
-          >
-            Por Candidato
+          <button className={`tab-btn ${aba === 'radar' ? 'tab-active' : ''}`} onClick={() => setAba('radar')}>
+            👤 Radar de Competências
           </button>
         </div>
 
-        {/* ── ABA: RANKING ── */}
+        {/* ── RANKING ── */}
         {aba === 'ranking' && (
           <div className="chart-section">
-            <h2 className="section-title">Ranking dos Candidatos</h2>
+            <h2 className="section-title">Ranking de Desempenho dos Trainees</h2>
             <p className="section-sub">
-              Ordenado pela <strong>média geral</strong> (escala 0–4), calculada sobre todos os
-              avaliadores que já avaliaram o candidato. Candidatos sem avaliação aparecem ao final.
+              Média ponderada baseada nas avaliações enviadas pelos membros seniores.
             </p>
-            <div className="legenda-badges">
-              <span className="legenda-item">
-                <span className="rank-badge" style={{ background: '#2e7d32', fontSize: 12, padding: '2px 10px' }}>≥ 3.5</span> Excelente
-              </span>
-              <span className="legenda-item">
-                <span className="rank-badge" style={{ background: '#f57c00', fontSize: 12, padding: '2px 10px' }}>≥ 2.5</span> Regular
-              </span>
-              <span className="legenda-item">
-                <span className="rank-badge" style={{ background: '#a80303', fontSize: 12, padding: '2px 10px' }}>&lt; 2.5</span> Abaixo
-              </span>
-            </div>
 
             <div className="ranking-list">
               {ranking.map((item, i) => (
-                <div
-                  key={item.nome}
-                  className="ranking-row"
-                  style={{ cursor: item.media !== null ? 'pointer' : 'default' }}
-                  onClick={() => {
-                    if (item.media !== null) {
-                      setCandidatoSel(item.nome);
-                      setAba('candidato');
-                    }
-                  }}
-                >
-                  <span className="rank-pos">
-                    {item.media !== null ? medalha(i + 1) : '—'}
-                  </span>
-                  <span className="rank-nome">{item.nome}</span>
-                  <span className="rank-grupo" style={{ fontSize: 11, color: '#aaa' }}>
-                    {item.totalAvaliacoes} avaliação(ões)
-                  </span>
-                  <span
-                    className="rank-badge"
-                    style={{ background: badgeColor(item.media) }}
-                  >
-                    {item.media !== null ? item.media.toFixed(2) : 'Sem nota'}
+                <div key={item.nome} className="ranking-row">
+                  <span className="rank-pos">{medalha(i + 1)}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>{item.nome}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                      {item.totalAvaliacoes} {item.totalAvaliacoes === 1 ? 'avaliação recebida' : 'avaliações recebidas'}
+                    </div>
+                  </div>
+                  <span className="rank-badge" style={{ background: badgeColor(item.media) }}>
+                    Média: {item.media?.toFixed(2)}
                   </span>
                 </div>
               ))}
               {ranking.length === 0 && (
-                <p style={{ color: '#aaa', textAlign: 'center', padding: '32px 0' }}>
+                <p style={{ color: 'var(--text-light)', textAlign: 'center', padding: '40px 0' }}>
                   Nenhuma avaliação registrada ainda.
                 </p>
               )}
@@ -173,85 +148,41 @@ export default function DashboardTrainee() {
           </div>
         )}
 
-        {/* ── ABA: CANDIDATO ── */}
-        {aba === 'candidato' && (
+        {/* ── RADAR ── */}
+        {aba === 'radar' && (
           <div className="chart-section">
-            <h2 className="section-title">Perfil por Candidato</h2>
+            <h2 className="section-title">Radar de Competências por Trainee</h2>
             <p className="section-sub">
-              Média de cada critério recebida pelo candidato de todos os avaliadores.
+              Visualize a distribuição de notas em cada competência individual.
             </p>
 
-            <div className="field member-select-wrap">
-              <label htmlFor="candidato-sel">Selecione o candidato</label>
+            <div style={{ maxWidth: 380, marginBottom: 24 }}>
               <select
-                id="candidato-sel"
+                className="field select"
+                style={{ padding: '10px 14px', borderRadius: 8, border: '1.5px solid var(--border)', width: '100%' }}
                 value={candidatoSel || ''}
                 onChange={(e) => setCandidatoSel(e.target.value)}
-                className="member-select"
               >
                 {(dados.candidatos || []).map((nome) => (
-                  <option key={nome} value={nome}>{nome}</option>
+                  <option key={nome} value={nome}>
+                    {nome}
+                  </option>
                 ))}
               </select>
             </div>
 
-            {dadosCandidato.media !== undefined && dadosCandidato.media !== null ? (
-              <>
-                <div style={{ textAlign: 'center', marginBottom: 8 }}>
-                  <span
-                    className="rank-badge"
-                    style={{ fontSize: 18, padding: '6px 20px', background: badgeColor(dadosCandidato.media) }}
-                  >
-                    Média: {dadosCandidato.media?.toFixed(2)}
-                  </span>
-                  <span style={{ fontSize: 12, color: '#aaa', marginLeft: 12 }}>
-                    {dadosCandidato.totalAvaliacoes} avaliador(es)
-                  </span>
-                </div>
-
-                <ResponsiveContainer width="100%" height={360}>
-                  <RadarChart data={radarData} margin={{ top: 16, right: 40, bottom: 16, left: 40 }}>
-                    <PolarGrid />
-                    <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11 }} />
-                    <PolarRadiusAxis angle={90} domain={[0, 4]} tickCount={5} tick={{ fontSize: 10 }} />
-                    <Radar
-                      name={candidatoSel}
-                      dataKey="A"
-                      stroke={RADAR_COLOR}
-                      fill={RADAR_COLOR}
-                      fillOpacity={0.35}
-                    />
-                    <Tooltip formatter={(v) => [v.toFixed(2), 'Média']} contentStyle={{ fontSize: 13 }} />
+            {candidatoSel && (
+              <div style={{ width: '100%', height: 380 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart data={radarData}>
+                    <PolarGrid stroke="#e2e8f0" />
+                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#475569', fontSize: 11, fontWeight: 600 }} />
+                    <PolarRadiusAxis domain={[0, 4]} tickCount={5} stroke="#94a3b8" />
+                    <Tooltip formatter={(v) => [`${v.toFixed(2)} / 4.0`, 'Nota']} />
+                    <Radar name="Nota" dataKey="A" stroke={RADAR_COLOR} fill={RADAR_COLOR} fillOpacity={0.25} />
                   </RadarChart>
                 </ResponsiveContainer>
-
-                <table className="criterios-table">
-                  <thead>
-                    <tr><th>Critério</th><th>Média</th></tr>
-                  </thead>
-                  <tbody>
-                    {CRITERIOS.map((c) => (
-                      <tr key={c.id}>
-                        <td>{c.label}</td>
-                        <td>
-                          <span
-                            className="rank-badge"
-                            style={{ background: badgeColor(dadosCandidato[c.id]), fontSize: 12, padding: '2px 10px' }}
-                          >
-                            {dadosCandidato[c.id]?.toFixed(2) ?? '—'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </>
-            ) : (
-              <p style={{ color: '#aaa', textAlign: 'center', padding: '32px 0' }}>
-                {candidatoSel
-                  ? `${candidatoSel.split(' ')[0]} ainda não foi avaliado(a).`
-                  : 'Selecione um candidato.'}
-              </p>
+              </div>
             )}
           </div>
         )}

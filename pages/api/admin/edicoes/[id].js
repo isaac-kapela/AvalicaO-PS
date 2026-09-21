@@ -1,4 +1,4 @@
-import { atualizarEdicao, ativarEdicao, deletarEdicao } from '../../../../lib/edicoes';
+import { atualizarEdicao, ativarEdicao, desativarEdicao, deletarEdicao } from '../../../../lib/edicoes';
 
 function verificarPin(req) {
   const pin = req.headers['x-admin-pin'];
@@ -14,11 +14,13 @@ export default async function handler(req, res) {
 
   if (req.method === 'PUT') {
     try {
-      const { ativar, ...campos } = req.body;
+      const { ativar, desativar, ...campos } = req.body;
       let doc;
       if (ativar) {
         if (!campos.tipo) return res.status(400).json({ error: 'Tipo necessário para ativar.' });
         doc = await ativarEdicao(id, campos.tipo);
+      } else if (desativar || ativar === false) {
+        doc = await desativarEdicao(id);
       } else {
         doc = await atualizarEdicao(id, campos);
       }

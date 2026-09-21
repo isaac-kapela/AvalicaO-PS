@@ -33,35 +33,42 @@ export default function AdminLogin() {
   }
 
   return (
-    <Layout title="Admin">
-      <div className="card" style={{ maxWidth: 360, margin: '0 auto' }}>
+    <Layout title="Admin" subtitle="Acesso Restrito">
+      <div className="card" style={{ maxWidth: 400, margin: '20px auto' }}>
         <div className="card-logo-wrap">
-          <img src="/logo.png" alt="Logo" className="card-logo" />
+          <div className="card-logo-circle">
+            <img src="/logo.png" alt="Logo Microraptor" className="card-logo" />
+          </div>
         </div>
-        <h1 className="card-title">Painel Admin</h1>
-        <p className="card-sub">Digite o PIN para acessar</p>
+        <div style={{ textAlign: 'center', marginBottom: 24 }}>
+          <h1 className="card-title">Painel Administrativo</h1>
+          <p className="card-sub">Informe o PIN de acesso para gerenciar edições e candidatos</p>
+        </div>
 
         {erro && <div className="alert alert-err">{erro}</div>}
 
         <form onSubmit={handleSubmit}>
-          <div className="field" style={{ marginBottom: 16 }}>
-            <label>PIN</label>
+          <div className="field" style={{ marginBottom: 18 }}>
+            <label>PIN de Administrador</label>
             <input
               type="password"
               value={pin}
               onChange={(e) => setPin(e.target.value)}
-              placeholder="••••"
+              placeholder="Digite o PIN..."
               autoFocus
-              maxLength={20}
+              maxLength={30}
+              style={{ textAlign: 'center', fontSize: 18, letterSpacing: 3 }}
             />
           </div>
           <button type="submit" className="btn-submit" disabled={carregando || !pin}>
-            {carregando ? 'Verificando...' : 'Entrar'}
+            {carregando ? 'Validando...' : 'Entrar no Painel →'}
           </button>
         </form>
 
-        <div style={{ textAlign: 'center', marginTop: 20 }}>
-          <button className="btn-back" onClick={() => router.push('/')}>← Voltar ao início</button>
+        <div style={{ textAlign: 'center', marginTop: 24 }}>
+          <button className="btn-back" onClick={() => router.push('/')}>
+            ← Voltar ao início
+          </button>
         </div>
       </div>
     </Layout>
