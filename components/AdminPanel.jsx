@@ -61,9 +61,9 @@ function GerenciarAvaliadores({ edicao, pin, onAtualizado }) {
         </span>
       </div>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap' }}>
         <input
-          style={{ flex: 1, padding: '10px 14px', borderRadius: 8, border: '1.5px solid var(--border)', fontSize: 14, fontFamily: 'inherit' }}
+          style={{ flex: 1, minWidth: 160, padding: '10px 14px', borderRadius: 8, border: '1.5px solid var(--border)', fontSize: 14, fontFamily: 'inherit' }}
           placeholder="Nome do avaliador..."
           value={novo}
           onChange={(e) => setNovo(e.target.value)}
@@ -90,7 +90,7 @@ function GerenciarAvaliadores({ edicao, pin, onAtualizado }) {
               disabled={salvando}
               style={{
                 background: '#fee2e2', border: 'none', color: '#dc2626',
-                cursor: 'pointer', fontWeight: 700, fontSize: 13, width: 24, height: 24,
+                cursor: 'pointer', fontWeight: 700, fontSize: 13, width: 26, height: 26,
                 borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center'
               }}
               title="Remover"
@@ -118,7 +118,7 @@ function GerenciarGrupos({ edicao, pin, onAtualizado }) {
   const [novoGrupo, setNovoGrupo] = useState('');
   const [salvando, setSalvando] = useState(false);
 
-  async function salvarGrupos(grupos) {
+  async function salvar(grupos) {
     setSalvando(true);
     await fetch(`/api/admin/edicoes/${edicao._id}`, {
       method: 'PUT',
@@ -129,128 +129,137 @@ function GerenciarGrupos({ edicao, pin, onAtualizado }) {
     onAtualizado();
   }
 
+  function adicionarGrupo() {
+    const num = novoGrupo.trim();
+    if (!num || isNaN(Number(num)) || gruposObj[num]) return;
+    const novos = { ...gruposObj, [num]: [] };
+    salvar(novos);
+    setNovoGrupo('');
+    setGrupoSel(num);
+  }
+
+  function removerGrupo(num) {
+    if (!window.confirm(`Remover Grupo ${num} e todos os seus membros?`)) return;
+    const novos = { ...gruposObj };
+    delete novos[num];
+    salvar(novos);
+    const restantes = Object.keys(novos);
+    setGrupoSel(restantes[0] || '1');
+  }
+
   function adicionarMembro() {
     const trimmed = novoMembro.trim();
-    if (!trimmed) return;
-    const lista = gruposObj[grupoSel] || [];
-    if (lista.includes(trimmed)) return;
-    salvarGrupos({ ...gruposObj, [grupoSel]: [...lista, trimmed] });
+    if (!trimmed || !grupoSel) return;
+    const membros = gruposObj[grupoSel] || [];
+    if (membros.includes(trimmed)) return;
+    const novos = { ...gruposObj, [grupoSel]: [...membros, trimmed] };
+    salvar(novos);
     setNovoMembro('');
   }
 
   function removerMembro(nome) {
-    const lista = (gruposObj[grupoSel] || []).filter((m) => m !== nome);
-    salvarGrupos({ ...gruposObj, [grupoSel]: lista });
-  }
-
-  function criarGrupo() {
-    const n = novoGrupo.trim();
-    if (!n || gruposObj[n]) return;
-    const novos = { ...gruposObj, [n]: [] };
-    setGrupoSel(n);
-    setNovoGrupo('');
-    salvarGrupos(novos);
-  }
-
-  function excluirGrupo() {
-    if (!window.confirm(`Excluir Grupo ${grupoSel}?`)) return;
-    const novos = { ...gruposObj };
-    delete novos[grupoSel];
-    const restantes = Object.keys(novos).sort((a, b) => Number(a) - Number(b));
-    setGrupoSel(restantes[0] || '');
-    salvarGrupos(novos);
+    const membros = gruposObj[grupoSel] || [];
+    const novos = { ...gruposObj, [grupoSel]: membros.filter((m) => m !== nome) };
+    salvar(novos);
   }
 
   const membrosAtuais = gruposObj[grupoSel] || [];
 
   return (
     <div>
-      {/* Seletor de grupo */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap', alignItems: 'center' }}>
-        {numeros.map((n) => (
-          <button
-            key={n}
-            className={`grupo-btn ${grupoSel === n ? 'grupo-btn-active' : ''}`}
-            onClick={() => setGrupoSel(n)}
-          >
-            Grupo {n}
-          </button>
-        ))}
-        <div style={{ display: 'flex', gap: 6, marginLeft: 'auto' }}>
-          <input
-            style={{ width: 70, padding: '7px 10px', borderRadius: 8, border: '1.5px solid var(--border)', fontSize: 13, fontFamily: 'inherit' }}
-            placeholder="Nº..."
-            value={novoGrupo}
-            onChange={(e) => setNovoGrupo(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && criarGrupo()}
-          />
-          <button className="btn-sm" onClick={criarGrupo} disabled={salvando || !novoGrupo.trim()}>
-            + Novo Grupo
-          </button>
-        </div>
+      {/* Criar novo grupo */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap' }}>
+        <input
+          style={{ width: 140, padding: '10px 14px', borderRadius: 8, border: '1.5px solid var(--border)', fontSize: 14, fontFamily: 'inherit' }}
+          placeholder="Nº Grupo (ex: 5)"
+          type="number"
+          min="1"
+          value={novoGrupo}
+          onChange={(e) => setNovoGrupo(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && adicionarGrupo()}
+        />
+        <button className="btn-sm" onClick={adicionarGrupo} disabled={salvando || !novoGrupo.trim()}>
+          + Novo Grupo
+        </button>
       </div>
 
-      {grupoSel ? (
-        <div style={{ background: 'var(--surface-subtle)', border: '1px solid var(--border)', borderRadius: 12, padding: 18 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-main)' }}>
-              Grupo {grupoSel} · {membrosAtuais.length} membro(s)
-            </span>
-            <button
-              onClick={excluirGrupo}
-              disabled={salvando}
-              style={{
-                background: 'transparent', border: '1px solid #dc2626', color: '#dc2626',
-                borderRadius: 6, padding: '4px 10px', fontSize: 12, cursor: 'pointer', fontWeight: 600
-              }}
-            >
-              Excluir Grupo
-            </button>
-          </div>
-
-          <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-            <input
-              style={{ flex: 1, padding: '9px 12px', borderRadius: 8, border: '1.5px solid var(--border)', fontSize: 14, fontFamily: 'inherit' }}
-              placeholder="Nome completo do candidato..."
-              value={novoMembro}
-              onChange={(e) => setNovoMembro(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && adicionarMembro()}
-            />
-            <button className="btn-sm" onClick={adicionarMembro} disabled={salvando || !novoMembro.trim()}>
-              + Candidato
-            </button>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {membrosAtuais.map((nome) => (
-              <div
-                key={nome}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  background: '#ffffff', borderRadius: 8, padding: '8px 12px',
-                  border: '1px solid var(--border)'
-                }}
-              >
-                <span style={{ fontSize: 14, color: 'var(--text-main)' }}>{nome}</span>
+      {/* Seletor de grupos em chips */}
+      {numeros.length > 0 ? (
+        <div>
+          <div className="grupo-selector">
+            {numeros.map((g) => (
+              <div key={g} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                 <button
-                  onClick={() => removerMembro(nome)}
+                  className={`grupo-btn ${grupoSel === g ? 'grupo-btn-active' : ''}`}
+                  onClick={() => setGrupoSel(g)}
+                >
+                  Grupo {g} ({gruposObj[g]?.length || 0})
+                </button>
+                <button
+                  onClick={() => removerGrupo(g)}
                   disabled={salvando}
                   style={{
-                    background: '#fee2e2', border: 'none', color: '#dc2626',
-                    cursor: 'pointer', fontWeight: 700, fontSize: 12, width: 22, height: 22,
-                    borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center'
+                    background: 'none', border: 'none', color: '#94a3b8',
+                    cursor: 'pointer', fontWeight: 700, fontSize: 12, padding: '2px 4px'
                   }}
-                  title="Remover"
+                  title={`Excluir Grupo ${g}`}
                 >
                   ✕
                 </button>
               </div>
             ))}
-            {membrosAtuais.length === 0 && (
-              <p style={{ color: 'var(--text-light)', fontSize: 13, textAlign: 'center', padding: '16px 0' }}>
-                Nenhum membro neste grupo.
-              </p>
-            )}
+          </div>
+
+          {/* Adicionar membro no grupo selecionado */}
+          <div style={{ background: 'var(--surface-subtle)', padding: 16, borderRadius: 12, border: '1px solid var(--border)', marginTop: 12 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12, color: 'var(--text-main)' }}>
+              Candidatos do Grupo {grupoSel}
+            </div>
+
+            <div style={{ display: 'flex', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
+              <input
+                style={{ flex: 1, minWidth: 160, padding: '9px 12px', borderRadius: 8, border: '1.5px solid var(--border)', fontSize: 14, fontFamily: 'inherit' }}
+                placeholder="Nome do candidato..."
+                value={novoMembro}
+                onChange={(e) => setNovoMembro(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && adicionarMembro()}
+              />
+              <button className="btn-sm" onClick={adicionarMembro} disabled={salvando || !novoMembro.trim()}>
+                + Adicionar
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {membrosAtuais.map((nome) => (
+                <div
+                  key={nome}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    background: '#ffffff', borderRadius: 8, padding: '8px 12px',
+                    border: '1px solid var(--border)'
+                  }}
+                >
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-main)' }}>{nome}</span>
+                  <button
+                    onClick={() => removerMembro(nome)}
+                    disabled={salvando}
+                    style={{
+                      background: '#fee2e2', border: 'none', color: '#dc2626',
+                      cursor: 'pointer', fontWeight: 700, fontSize: 12, width: 22, height: 22,
+                      borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center'
+                    }}
+                    title="Remover"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+              {membrosAtuais.length === 0 && (
+                <p style={{ color: 'var(--text-light)', fontSize: 13, textAlign: 'center', padding: '16px 0' }}>
+                  Nenhum membro neste grupo.
+                </p>
+              )}
+            </div>
           </div>
         </div>
       ) : (
@@ -297,9 +306,9 @@ function GerenciarCandidatos({ edicao, pin, onAtualizado }) {
         </span>
       </div>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap' }}>
         <input
-          style={{ flex: 1, padding: '10px 14px', borderRadius: 8, border: '1.5px solid var(--border)', fontSize: 14, fontFamily: 'inherit' }}
+          style={{ flex: 1, minWidth: 160, padding: '10px 14px', borderRadius: 8, border: '1.5px solid var(--border)', fontSize: 14, fontFamily: 'inherit' }}
           placeholder="Nome completo do trainee..."
           value={novo}
           onChange={(e) => setNovo(e.target.value)}
@@ -326,7 +335,7 @@ function GerenciarCandidatos({ edicao, pin, onAtualizado }) {
               disabled={salvando}
               style={{
                 background: '#fee2e2', border: 'none', color: '#dc2626',
-                cursor: 'pointer', fontWeight: 700, fontSize: 13, width: 24, height: 24,
+                cursor: 'pointer', fontWeight: 700, fontSize: 13, width: 26, height: 26,
                 borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center'
               }}
               title="Remover"
@@ -434,11 +443,11 @@ export default function AdminPanel({ pin, onLogout }) {
   const tipoLabel = (t) => t === 'ps' ? 'Processo Seletivo' : 'Trainee';
 
   return (
-    <div style={{ maxWidth: 840, margin: '0 auto', padding: '36px 18px 64px' }}>
+    <div style={{ maxWidth: 840, margin: '0 auto', padding: '16px 12px 64px' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0, letterSpacing: -0.4 }}>Painel Administrativo</h1>
+          <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, letterSpacing: -0.4 }}>Painel Administrativo</h1>
           <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: '4px 0 0' }}>Gerenciamento de edições, grupos e avaliadores</p>
         </div>
         <button className="btn-back" style={{ marginBottom: 0 }} onClick={onLogout}>
@@ -449,8 +458,8 @@ export default function AdminPanel({ pin, onLogout }) {
       {erro && <div className="alert alert-err" style={{ marginBottom: 16 }}>{erro}</div>}
 
       {/* Lista de edições */}
-      <div className="card" style={{ marginBottom: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+      <div className="card" style={{ marginBottom: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>
           <h2 style={{ fontSize: 17, fontWeight: 800, margin: 0 }}>Edições do Sistema</h2>
           <button className="btn-sm" onClick={() => setCriando((v) => !v)}>
             {criando ? '✕ Cancelar' : '+ Nova Edição'}
@@ -458,7 +467,7 @@ export default function AdminPanel({ pin, onLogout }) {
         </div>
 
         {criando && (
-          <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap', background: 'var(--surface-subtle)', padding: 14, borderRadius: 10, border: '1px solid var(--border)' }}>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap', background: 'var(--surface-subtle)', padding: 12, borderRadius: 10, border: '1px solid var(--border)' }}>
             <input
               style={{ flex: 1, minWidth: 120, padding: '9px 12px', borderRadius: 8, border: '1.5px solid var(--border)', fontSize: 14, fontFamily: 'inherit' }}
               placeholder="Código (ex: 2026.1)"
@@ -493,49 +502,53 @@ export default function AdminPanel({ pin, onLogout }) {
                   key={ed._id}
                   onClick={() => setEdicaoSel(ed)}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    padding: '14px 18px', borderRadius: 12, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10,
+                    padding: '12px 16px', borderRadius: 12, cursor: 'pointer',
                     border: `1.5px solid ${selecionada ? 'var(--primary)' : 'var(--border)'}`,
                     background: selecionada ? '#fff5f5' : 'var(--surface)',
                     boxShadow: selecionada ? 'var(--shadow-sm)' : 'none',
                     transition: 'all 0.2s ease',
                   }}
                 >
-                  <span style={{ fontWeight: 800, fontSize: 16, flex: 1, color: 'var(--text-main)' }}>
-                    {ed.codigo}
-                  </span>
-                  <Badge color={ed.tipo === 'ps' ? '#2563eb' : '#7c3aed'} bg={ed.tipo === 'ps' ? '#eff6ff' : '#f5f3ff'}>
-                    {tipoLabel(ed.tipo)}
-                  </Badge>
-                  <Badge color={ed.ativo ? '#16a34a' : '#94a3b8'} bg={ed.ativo ? '#f0fdf4' : '#f8fafc'}>
-                    {ed.ativo ? '● Ativa' : 'Inativa'}
-                  </Badge>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                    <span style={{ fontWeight: 800, fontSize: 16, color: 'var(--text-main)' }}>
+                      {ed.codigo}
+                    </span>
+                    <Badge color={ed.tipo === 'ps' ? '#2563eb' : '#7c3aed'} bg={ed.tipo === 'ps' ? '#eff6ff' : '#f5f3ff'}>
+                      {tipoLabel(ed.tipo)}
+                    </Badge>
+                    <Badge color={ed.ativo ? '#16a34a' : '#94a3b8'} bg={ed.ativo ? '#f0fdf4' : '#f8fafc'}>
+                      {ed.ativo ? '● Ativa' : 'Inativa'}
+                    </Badge>
+                  </div>
 
-                  {ed.ativo ? (
-                    <button
-                      className="btn-sm"
-                      style={{ fontSize: 11, padding: '5px 12px', background: '#e2e8f0', color: '#475569', boxShadow: 'none' }}
-                      onClick={(e) => { e.stopPropagation(); desativar(ed); }}
-                    >
-                      Desativar
-                    </button>
-                  ) : (
-                    <button
-                      className="btn-sm"
-                      style={{ fontSize: 11, padding: '5px 12px', background: '#16a34a' }}
-                      onClick={(e) => { e.stopPropagation(); ativar(ed); }}
-                    >
-                      Ativar
-                    </button>
-                  )}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {ed.ativo ? (
+                      <button
+                        className="btn-sm"
+                        style={{ fontSize: 11, padding: '5px 12px', background: '#e2e8f0', color: '#475569', boxShadow: 'none' }}
+                        onClick={(e) => { e.stopPropagation(); desativar(ed); }}
+                      >
+                        Desativar
+                      </button>
+                    ) : (
+                      <button
+                        className="btn-sm"
+                        style={{ fontSize: 11, padding: '5px 12px', background: '#16a34a' }}
+                        onClick={(e) => { e.stopPropagation(); ativar(ed); }}
+                      >
+                        Ativar
+                      </button>
+                    )}
 
-                  <button
-                    onClick={(e) => { e.stopPropagation(); excluir(ed); }}
-                    style={{ background: 'none', border: 'none', color: 'var(--text-light)', cursor: 'pointer', fontWeight: 700, fontSize: 16, lineHeight: 1, padding: '0 4px' }}
-                    title="Excluir edição"
-                  >
-                    ✕
-                  </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); excluir(ed); }}
+                      style={{ background: 'none', border: 'none', color: 'var(--text-light)', cursor: 'pointer', fontWeight: 700, fontSize: 16, lineHeight: 1, padding: '0 6px' }}
+                      title="Excluir edição"
+                    >
+                      ✕
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -546,7 +559,7 @@ export default function AdminPanel({ pin, onLogout }) {
       {/* Painel da edição selecionada */}
       {edicaoSel && (
         <div className="card">
-          <div style={{ marginBottom: 20 }}>
+          <div style={{ marginBottom: 18 }}>
             <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 4 }}>
               Configurações · {edicaoSel.codigo} ({tipoLabel(edicaoSel.tipo)})
             </h2>
@@ -555,7 +568,7 @@ export default function AdminPanel({ pin, onLogout }) {
             </p>
           </div>
 
-          <div className="tab-bar" style={{ marginBottom: 20 }}>
+          <div className="tab-bar" style={{ marginBottom: 18 }}>
             <button
               className={`tab-btn ${aba === 'avaliadores' ? 'tab-active' : ''}`}
               onClick={() => setAba('avaliadores')}

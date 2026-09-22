@@ -45,7 +45,7 @@ export default function DashboardTrainee() {
   if (carregando) {
     return (
       <Layout title="Dashboard Trainee">
-        <div className="card" style={{ textAlign: 'center', padding: '64px 32px' }}>
+        <div className="card" style={{ textAlign: 'center', padding: '48px 20px' }}>
           <p style={{ color: 'var(--text-muted)' }}>Carregando métricas de trainees...</p>
         </div>
       </Layout>
@@ -76,15 +76,19 @@ export default function DashboardTrainee() {
     <Layout title="Dashboard Trainee" subtitle="Acompanhamento Individual">
       <div className="dashboard-content">
         {/* Cabeçalho */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <button className="btn-back" style={{ marginBottom: 0 }} onClick={() => router.push('/')}>
               ← Início
             </button>
-            <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0, letterSpacing: -0.4 }}>
+            <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, letterSpacing: -0.4 }}>
               Painel de Desempenho (Trainees)
             </h1>
           </div>
+
+          <a href="/api/exportar?tipo=trainee" className="btn-sm">
+            📊 Exportar Trainee
+          </a>
         </div>
 
         {/* Stat cards */}
@@ -128,19 +132,21 @@ export default function DashboardTrainee() {
               {ranking.map((item, i) => (
                 <div key={item.nome} className="ranking-row">
                   <span className="rank-pos">{medalha(i + 1)}</span>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>{item.nome}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {item.nome}
+                    </div>
                     <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                      {item.totalAvaliacoes} {item.totalAvaliacoes === 1 ? 'avaliação recebida' : 'avaliações recebidas'}
+                      {item.totalAvaliacoes} {item.totalAvaliacoes === 1 ? 'avaliação' : 'avaliações'}
                     </div>
                   </div>
                   <span className="rank-badge" style={{ background: badgeColor(item.media) }}>
-                    Média: {item.media?.toFixed(2)}
+                    {item.media?.toFixed(2)}
                   </span>
                 </div>
               ))}
               {ranking.length === 0 && (
-                <p style={{ color: 'var(--text-light)', textAlign: 'center', padding: '40px 0' }}>
+                <p style={{ color: 'var(--text-light)', textAlign: 'center', padding: '32px 0' }}>
                   Nenhuma avaliação registrada ainda.
                 </p>
               )}
@@ -156,10 +162,10 @@ export default function DashboardTrainee() {
               Visualize a distribuição de notas em cada competência individual.
             </p>
 
-            <div style={{ maxWidth: 380, marginBottom: 24 }}>
+            <div style={{ maxWidth: 360, marginBottom: 20 }}>
               <select
                 className="field select"
-                style={{ padding: '10px 14px', borderRadius: 8, border: '1.5px solid var(--border)', width: '100%' }}
+                style={{ padding: '9px 12px', borderRadius: 8, border: '1.5px solid var(--border)', width: '100%', fontSize: 14 }}
                 value={candidatoSel || ''}
                 onChange={(e) => setCandidatoSel(e.target.value)}
               >
@@ -172,11 +178,11 @@ export default function DashboardTrainee() {
             </div>
 
             {candidatoSel && (
-              <div style={{ width: '100%', height: 380 }}>
+              <div style={{ width: '100%', height: 340 }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart data={radarData}>
+                  <RadarChart data={radarData} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
                     <PolarGrid stroke="#e2e8f0" />
-                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#475569', fontSize: 11, fontWeight: 600 }} />
+                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#475569', fontSize: 10, fontWeight: 600 }} />
                     <PolarRadiusAxis domain={[0, 4]} tickCount={5} stroke="#94a3b8" />
                     <Tooltip formatter={(v) => [`${v.toFixed(2)} / 4.0`, 'Nota']} />
                     <Radar name="Nota" dataKey="A" stroke={RADAR_COLOR} fill={RADAR_COLOR} fillOpacity={0.25} />

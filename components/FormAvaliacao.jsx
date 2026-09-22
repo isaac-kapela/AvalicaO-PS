@@ -251,8 +251,8 @@ export default function FormAvaliacao({ avaliador, grupo, membros }) {
                     <div className="criterio-label">
                       <span>{label}</span>
                       {valorAtual !== '' && valorAtual !== undefined && (
-                        <span style={{ color: 'var(--text-main)', fontWeight: 700 }}>
-                          Nota: {valorAtual}
+                        <span style={{ color: 'var(--primary)', fontWeight: 700, fontSize: 11 }}>
+                          {NOTA_LABELS[valorAtual]}
                         </span>
                       )}
                     </div>
