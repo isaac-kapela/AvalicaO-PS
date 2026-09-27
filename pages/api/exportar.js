@@ -45,7 +45,9 @@ export default async function handler(req, res) {
 
       for (const doc of docs) {
         for (const p of doc.avaliacoes || []) {
-          if (!membrosPS.has(p.nome) && !doc.edicaoId && !doc.edicao) continue;
+          // Filtro estrito: apenas candidatos cadastrados na edição ativa
+          if (!membrosPS.has(p.nome)) continue;
+
           const media = calcularMedia(p);
           linhas.push({
             'Edição': edicaoPS.codigo || 'Ativa',
@@ -70,7 +72,7 @@ export default async function handler(req, res) {
         }
       }
 
-      const wsPS = XLSX.utils.json_to_sheet(linhas.length ? linhas : [{ 'Aviso': 'Nenhuma avaliação registrada ainda' }]);
+      const wsPS = XLSX.utils.json_to_sheet(linhas.length ? linhas : [{ 'Aviso': 'Nenhuma avaliação registrada ainda nesta edição' }]);
       wsPS['!cols'] = [
         { wch: 10 }, { wch: 20 }, { wch: 10 }, { wch: 30 }, { wch: 12 },
         { wch: 13 }, { wch: 12 }, { wch: 14 }, { wch: 12 }, { wch: 18 },
@@ -99,6 +101,9 @@ export default async function handler(req, res) {
       const linhasTrainee = [];
 
       for (const doc of docsTrainee) {
+        // Filtro estrito: apenas trainees cadastrados na edição ativa
+        if (!candidatosTrainee.has(doc.trainee)) continue;
+
         const media = calcularMedia(doc);
         linhasTrainee.push({
           'Edição': edicaoTrainee.codigo || 'Ativa',
@@ -120,7 +125,7 @@ export default async function handler(req, res) {
         });
       }
 
-      const wsTrainee = XLSX.utils.json_to_sheet(linhasTrainee.length ? linhasTrainee : [{ 'Aviso': 'Nenhuma avaliação registrada ainda' }]);
+      const wsTrainee = XLSX.utils.json_to_sheet(linhasTrainee.length ? linhasTrainee : [{ 'Aviso': 'Nenhuma avaliação registrada ainda nesta edição' }]);
       wsTrainee['!cols'] = [
         { wch: 10 }, { wch: 20 }, { wch: 30 }, { wch: 12 },
         { wch: 13 }, { wch: 12 }, { wch: 14 }, { wch: 12 }, { wch: 18 },
