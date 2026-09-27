@@ -1,4 +1,5 @@
 import { salvarAvaliacao, listarAvaliacoes } from '../../lib/avaliacoes';
+import { getEdicaoAtiva } from '../../lib/edicoes';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
@@ -7,7 +8,21 @@ export default async function handler(req, res) {
       if (!avaliador || !grupo || !avaliacoes?.length) {
         return res.status(400).json({ error: 'Dados incompletos.' });
       }
-      const doc = await salvarAvaliacao({ avaliador, grupo, avaliacoes, observacao });
+
+      const edicaoAtiva = await getEdicaoAtiva('ps');
+      if (!edicaoAtiva) {
+        return res.status(400).json({ error: 'O Processo Seletivo está desativado no momento.' });
+      }
+
+      const doc = await salvarAvaliacao({
+        avaliador,
+        grupo,
+        avaliacoes,
+        observacao,
+        edicaoId: edicaoAtiva._id,
+        edicao: edicaoAtiva.codigo,
+      });
+
       return res.status(201).json({ success: true, data: doc });
     } catch (error) {
       return res.status(500).json({ error: error.message });

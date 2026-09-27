@@ -10,23 +10,49 @@ export default async function handler(req, res) {
   }
 
   try {
-    const [docs, edicao] = await Promise.all([
-      listarAvaliacoesTrainee(),
-      getEdicaoAtiva('trainee'),
-    ]);
+    const edicao = await getEdicaoAtiva('trainee');
 
-    const candidatos = edicao?.candidatos || [];
+    if (!edicao) {
+      return res.status(200).json({
+        ativo: false,
+        edicao: null,
+        porCandidato: {},
+        ranking: [],
+        candidatos: [],
+        totalAvaliacoes: 0,
+        totalCandidatos: 0,
+        avaliados: 0,
+      });
+    }
 
-    // Acumula notas por candidato
-    const acumulado = {};
-    for (const doc of docs) {
-      if (!acumulado[doc.trainee]) {
-        acumulado[doc.trainee] = {};
-        for (const id of IDS) acumulado[doc.trainee][id] = [];
+    const candidatos = edicao.candidatos || [];
+    const candidatosAtivos = new Set(candidatos);
+
+    // Busca avaliações e filtra pela edição ativa
+    const allDocs = await listarAvaliacoesTrainee();
+    const docs = allDocs.filter((doc) => {
+      if (doc.edicaoId && edicao._id) {
+        return doc.edicaoId.toString() === edicao._id.toString();
       }
-      for (const id of IDS) {
-        const val = doc[id];
-        if (typeof val === 'number') acumulado[doc.trainee][id].push(val);
+      if (doc.edicao) {
+        return doc.edicao === edicao.codigo;
+      }
+      return candidatosAtivos.has(doc.trainee);
+    });
+
+    // Acumula notas por candidato da edição ativa
+    const acumulado = {};
+    for (const c of candidatos) {
+      acumulado[c] = {};
+      for (const id of IDS) acumulado[c][id] = [];
+    }
+
+    for (const doc of docs) {
+      if (candidatosAtivos.has(doc.trainee)) {
+        for (const id of IDS) {
+          const val = doc[id];
+          if (typeof val === 'number') acumulado[doc.trainee][id].push(val);
+        }
       }
     }
 
@@ -48,27 +74,25 @@ export default async function handler(req, res) {
       porCandidato[nome].totalAvaliacoes = docs.filter((d) => d.trainee === nome).length;
     }
 
-    // Ranking: ordenado por média decrescente
+    // Ranking estrito da edição ativa
     const ranking = candidatos
       .map((nome) => ({
         nome,
         media: porCandidato[nome]?.media ?? null,
         totalAvaliacoes: porCandidato[nome]?.totalAvaliacoes ?? 0,
       }))
-      .sort((a, b) => {
-        if (a.media === null && b.media === null) return 0;
-        if (a.media === null) return 1;
-        if (b.media === null) return -1;
-        return b.media - a.media;
-      });
+      .filter((r) => r.media !== null)
+      .sort((a, b) => b.media - a.media);
 
     return res.status(200).json({
+      ativo: true,
+      edicao: { codigo: edicao.codigo, id: edicao._id },
       porCandidato,
       ranking,
       candidatos,
       totalAvaliacoes: docs.length,
       totalCandidatos: candidatos.length,
-      avaliados: Object.keys(porCandidato).length,
+      avaliados: ranking.length,
     });
   } catch (error) {
     return res.status(500).json({ error: error.message });

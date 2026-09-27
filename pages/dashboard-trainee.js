@@ -63,7 +63,26 @@ export default function DashboardTrainee() {
     );
   }
 
-  const { porCandidato, ranking, totalAvaliacoes, totalCandidatos, avaliados } = dados;
+  if (dados?.ativo === false) {
+    return (
+      <Layout title="Dashboard Trainee" subtitle="Processo Trainee">
+        <div className="card" style={{ textAlign: 'center', padding: '48px 20px' }}>
+          <div style={{ fontSize: 40, marginBottom: 16 }}>🔒</div>
+          <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-main)', marginBottom: 8 }}>
+            Processo Trainee Desativado
+          </h2>
+          <p style={{ color: 'var(--text-muted)', maxWidth: 460, margin: '0 auto 24px', fontSize: 14 }}>
+            Nenhuma edição de Processo Trainee está ativa no momento. Ative uma edição no Painel Administrativo para visualizar o ranking e as métricas.
+          </p>
+          <button className="btn-back" style={{ display: 'inline-flex', marginBottom: 0 }} onClick={() => router.push('/')}>
+            ← Voltar ao Início
+          </button>
+        </div>
+      </Layout>
+    );
+  }
+
+  const { porCandidato, ranking, totalAvaliacoes, totalCandidatos, avaliados, edicao } = dados;
 
   const dadosCandidato = candidatoSel ? (porCandidato[candidatoSel] || {}) : {};
   const radarData = CRITERIOS.map((c) => ({
@@ -73,7 +92,7 @@ export default function DashboardTrainee() {
   }));
 
   return (
-    <Layout title="Dashboard Trainee" subtitle="Acompanhamento Individual">
+    <Layout title="Dashboard Trainee" subtitle={edicao?.codigo ? `Edição ${edicao.codigo}` : 'Acompanhamento Individual'}>
       <div className="dashboard-content">
         {/* Cabeçalho */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
@@ -82,7 +101,7 @@ export default function DashboardTrainee() {
               ← Início
             </button>
             <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, letterSpacing: -0.4 }}>
-              Painel de Desempenho (Trainees)
+              Painel de Desempenho {edicao?.codigo && `· ${edicao.codigo}`}
             </h1>
           </div>
 
@@ -96,17 +115,17 @@ export default function DashboardTrainee() {
           <div className="stat-card">
             <span className="stat-num">{totalAvaliacoes}</span>
             <span className="stat-label">Avaliações enviadas</span>
-            <span className="stat-desc">Total de feedbacks individuais registrados</span>
+            <span className="stat-desc">Total nesta edição</span>
           </div>
           <div className="stat-card">
             <span className="stat-num">{avaliados}</span>
             <span className="stat-label">Trainees avaliados</span>
-            <span className="stat-desc">Membros que já receberam nota</span>
+            <span className="stat-desc">Membros com ao menos uma nota</span>
           </div>
           <div className="stat-card">
             <span className="stat-num">{totalCandidatos}</span>
             <span className="stat-label">Total de trainees</span>
-            <span className="stat-desc">Cadastrados na edição atual</span>
+            <span className="stat-desc">Cadastrados na edição ativa</span>
           </div>
         </div>
 
@@ -125,7 +144,7 @@ export default function DashboardTrainee() {
           <div className="chart-section">
             <h2 className="section-title">Ranking de Desempenho dos Trainees</h2>
             <p className="section-sub">
-              Média ponderada baseada nas avaliações enviadas pelos membros seniores.
+              Média ponderada baseada nas avaliações enviadas na edição {edicao?.codigo ? `(${edicao.codigo})` : ''}.
             </p>
 
             <div className="ranking-list">
@@ -147,7 +166,7 @@ export default function DashboardTrainee() {
               ))}
               {ranking.length === 0 && (
                 <p style={{ color: 'var(--text-light)', textAlign: 'center', padding: '32px 0' }}>
-                  Nenhuma avaliação registrada ainda.
+                  Nenhuma avaliação registrada nesta edição ainda.
                 </p>
               )}
             </div>

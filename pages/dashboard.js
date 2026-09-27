@@ -72,7 +72,26 @@ export default function Dashboard() {
     );
   }
 
-  const { porMembro, porGrupo, ranking, grupos: GRUPOS, totalAvaliacoes, avaliadores } = dados;
+  if (dados?.ativo === false) {
+    return (
+      <Layout title="Dashboard PS" subtitle="Processo Seletivo">
+        <div className="card" style={{ textAlign: 'center', padding: '48px 20px' }}>
+          <div style={{ fontSize: 40, marginBottom: 16 }}>🔒</div>
+          <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-main)', marginBottom: 8 }}>
+            Processo Seletivo Desativado
+          </h2>
+          <p style={{ color: 'var(--text-muted)', maxWidth: 460, margin: '0 auto 24px', fontSize: 14 }}>
+            Nenhuma edição de Processo Seletivo está ativa no momento. Ative uma edição no Painel Administrativo para visualizar o ranking e as métricas.
+          </p>
+          <button className="btn-back" style={{ display: 'inline-flex', marginBottom: 0 }} onClick={() => router.push('/')}>
+            ← Voltar ao Início
+          </button>
+        </div>
+      </Layout>
+    );
+  }
+
+  const { porMembro, porGrupo, ranking, grupos: GRUPOS, totalAvaliacoes, avaliadores, edicao } = dados;
   const numeros = Object.keys(GRUPOS || {}).sort((a, b) => Number(a) - Number(b));
   const totalCandidatos = Object.values(GRUPOS || {}).reduce((acc, m) => acc + m.length, 0);
 
@@ -96,7 +115,7 @@ export default function Dashboard() {
   );
 
   return (
-    <Layout title="Dashboard PS" subtitle="Processo Seletivo">
+    <Layout title="Dashboard PS" subtitle={edicao?.codigo ? `Edição ${edicao.codigo}` : 'Processo Seletivo'}>
       <div className="dashboard-content">
         {/* Cabeçalho */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
@@ -105,7 +124,7 @@ export default function Dashboard() {
               ← Início
             </button>
             <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0, letterSpacing: -0.4 }}>
-              Painel de Desempenho (PS)
+              Painel de Desempenho {edicao?.codigo && `· ${edicao.codigo}`}
             </h1>
           </div>
 
@@ -119,7 +138,7 @@ export default function Dashboard() {
           <div className="stat-card">
             <span className="stat-num">{totalAvaliacoes}</span>
             <span className="stat-label">Avaliações enviadas</span>
-            <span className="stat-desc">Registros de formulários preenchidos</span>
+            <span className="stat-desc">Registros nesta edição</span>
           </div>
           <div className="stat-card">
             <span className="stat-num">{avaliadores}</span>
@@ -151,7 +170,7 @@ export default function Dashboard() {
           <div className="chart-section">
             <h2 className="section-title">Classificação Geral dos Candidatos</h2>
             <p className="section-sub">
-              Média ponderada calculada a partir de todas as avaliações recebidas na edição.
+              Média ponderada calculada a partir de todas as avaliações recebidas na edição {edicao?.codigo ? `(${edicao.codigo})` : ''}.
             </p>
 
             {/* Legenda */}
@@ -184,7 +203,7 @@ export default function Dashboard() {
               ))}
               {ranking.length === 0 && (
                 <p style={{ color: 'var(--text-light)', textAlign: 'center', padding: '32px 0' }}>
-                  Nenhuma avaliação registrada ainda.
+                  Nenhuma avaliação registrada nesta edição ainda.
                 </p>
               )}
             </div>

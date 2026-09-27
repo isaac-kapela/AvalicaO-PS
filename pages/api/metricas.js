@@ -10,27 +10,55 @@ export default async function handler(req, res) {
   }
 
   try {
-    const [docs, edicao] = await Promise.all([
-      listarAvaliacoes(),
-      getEdicaoAtiva('ps'),
-    ]);
+    const edicao = await getEdicaoAtiva('ps');
 
-    // Converte grupos do Map/objeto da edição ativa
-    const GRUPOS = edicao?.grupos
+    if (!edicao) {
+      return res.status(200).json({
+        ativo: false,
+        edicao: null,
+        porMembro: {},
+        porGrupo: {},
+        ranking: [],
+        grupos: {},
+        totalAvaliacoes: 0,
+        avaliadores: 0,
+      });
+    }
+
+    // Converte grupos da edição ativa
+    const GRUPOS = edicao.grupos
       ? Object.fromEntries(Object.entries(edicao.grupos))
       : {};
 
+    const membrosAtivos = new Set(Object.values(GRUPOS).flat());
+
+    // Busca avaliações e filtra estritamente pela edição ativa
+    const allDocs = await listarAvaliacoes();
+    const docs = allDocs.filter((doc) => {
+      if (doc.edicaoId && edicao._id) {
+        return doc.edicaoId.toString() === edicao._id.toString();
+      }
+      if (doc.edicao) {
+        return doc.edicao === edicao.codigo;
+      }
+      // Legado: avaliações antigas sem tag de edição só contam se todos os candidatos pertencerem aos grupos ativos
+      return doc.avaliacoes?.some((av) => membrosAtivos.has(av.nome));
+    });
+
     const acumulado = {};
+    for (const m of membrosAtivos) {
+      acumulado[m] = {};
+      for (const id of IDS) acumulado[m][id] = [];
+    }
+
     for (const doc of docs) {
       for (const av of doc.avaliacoes) {
-        if (!acumulado[av.nome]) {
-          acumulado[av.nome] = {};
-          for (const id of IDS) acumulado[av.nome][id] = [];
-        }
-        for (const id of IDS) {
-          const val = av[id];
-          if (typeof val === 'number') {
-            acumulado[av.nome][id].push(val);
+        if (membrosAtivos.has(av.nome)) {
+          for (const id of IDS) {
+            const val = av[id];
+            if (typeof val === 'number') {
+              acumulado[av.nome][id].push(val);
+            }
           }
         }
       }
@@ -79,17 +107,23 @@ export default async function handler(req, res) {
         : null;
     }
 
-    const ranking = Object.entries(porMembro)
-      .map(([nome, dados]) => {
-        const grupo = Object.entries(GRUPOS).find(([, membros]) => membros.includes(nome))?.[0];
-        return { nome, grupo: grupo ? Number(grupo) : null, media: dados.media };
-      })
+    // Ranking contendo ESTRITAMENTE candidatos da edição ativa
+    const ranking = Object.entries(GRUPOS)
+      .flatMap(([gNum, membros]) =>
+        membros.map((nome) => ({
+          nome,
+          grupo: Number(gNum),
+          media: porMembro[nome]?.media ?? null,
+        }))
+      )
       .filter((r) => r.media !== null)
       .sort((a, b) => b.media - a.media);
 
     const avaliadoresQueEnviaram = new Set(docs.map((d) => d.avaliador));
 
     return res.status(200).json({
+      ativo: true,
+      edicao: { codigo: edicao.codigo, id: edicao._id },
       porMembro,
       porGrupo,
       ranking,
